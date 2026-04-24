@@ -2,591 +2,1010 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nespos OS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Nexus OS — Следующее поколение</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            user-select: none;
         }
 
         body {
-            height: 100vh;
+            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
             overflow: hidden;
-            font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+            height: 100vh;
+            background: #0a0c14;
         }
 
-        /* ========== УСТАНОВЩИК С НУЛЯ ========== */
-        .setup {
+        /* ========== УСТАНОВЩИК ========== */
+        .setup-overlay {
             position: fixed;
-            inset: 0;
-            background: linear-gradient(135deg, #0a0f1a 0%, #06090f 100%);
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 20%, #0f111a, #030408);
+            z-index: 20000;
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 9999;
+            backdrop-filter: blur(4px);
         }
 
-        .setup-card {
-            background: rgba(18, 22, 32, 0.9);
+        .setup-window {
+            background: rgba(20, 24, 36, 0.95);
             backdrop-filter: blur(40px);
-            border-radius: 2rem;
-            padding: 2.5rem;
+            border-radius: 32px;
+            padding: 40px;
             width: 480px;
-            max-width: 90vw;
-            border: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.15);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+            animation: fadeInUp 0.5s ease;
         }
 
-        .setup-title {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(90deg, #fff, #a855f7);
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .setup-window h1 {
+            background: linear-gradient(135deg, #fff, #a855f7);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
+            margin-bottom: 10px;
+            font-size: 32px;
         }
-
-        .setup-select, .setup-input {
+        .setup-window p { color: rgba(255,255,255,0.6); margin-bottom: 30px; }
+        
+        .setup-input {
             width: 100%;
-            padding: 0.75rem 1rem;
-            background: rgba(0,0,0,0.5);
+            padding: 14px;
+            margin: 10px 0;
+            background: rgba(255,255,255,0.08);
             border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 2rem;
+            border-radius: 24px;
             color: white;
-            margin: 0.75rem 0;
+            font-size: 16px;
+            outline: none;
+            transition: 0.2s;
+        }
+        .setup-input:focus { border-color: #a855f7; background: rgba(255,255,255,0.12); }
+        
+        .avatar-selector {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .avatar-option {
+            cursor: pointer;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        .avatar-option:hover { transform: scale(1.1); }
+        .avatar-option.selected { border-color: #a855f7; box-shadow: 0 0 20px rgba(168,85,247,0.5); }
+        .avatar-option img { width: 70px; height: 70px; object-fit: cover; }
+        
+        .setup-btn {
+            background: linear-gradient(135deg, #3b82f6, #a855f7);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 28px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.2s;
+        }
+        .setup-btn:hover { transform: scale(1.02); box-shadow: 0 5px 20px rgba(168,85,247,0.4); }
+
+        /* ========== РАБОЧИЙ СТОЛ ========== */
+        #desktop {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            display: none;
         }
 
-        .setup-btn {
-            background: linear-gradient(90deg, #3b82f6, #a855f7);
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 2rem;
+        .desktop-icon {
+            position: absolute;
+            width: 90px;
+            text-align: center;
+            cursor: pointer;
+            padding: 10px 5px;
+            border-radius: 12px;
+            transition: all 0.2s;
             color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        .desktop-icon:hover { background: rgba(255,255,255,0.15); transform: translateY(-2px); }
+        .desktop-icon img { width: 48px; height: 48px; display: block; margin: 0 auto 5px; pointer-events: none; }
+        .desktop-icon span { font-size: 12px; font-weight: 500; }
+
+        /* ========== ОКНА ========== */
+        .window {
+            position: absolute;
+            min-width: 400px;
+            min-height: 300px;
+            background: rgba(24, 28, 42, 0.97);
+            backdrop-filter: blur(32px);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            overflow: hidden;
+            animation: windowAppear 0.2s ease;
+        }
+        @keyframes windowAppear {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .window-header {
+            height: 40px;
+            background: rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .drag-handle { flex: 1; height: 100%; cursor: grab; display: flex; align-items: center; gap: 8px; }
+        .drag-handle:active { cursor: grabbing; }
+        .window-title { color: white; font-size: 13px; font-weight: 500; }
+        .window-controls { display: flex; gap: 10px; }
+        .win-btn { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; transition: 0.2s; }
+        .win-btn.close { background: #ff5f56; }
+        .win-btn.minimize { background: #ffbd2e; }
+        .win-btn.maximize { background: #27c93f; }
+        .win-btn:hover { filter: brightness(0.9); transform: scale(1.1); }
+        .window-content { flex: 1; overflow: auto; padding: 0; color: white; }
+        .window-content iframe { width: 100%; height: 100%; border: none; background: white; }
+        .resize-handle {
+            width: 20px;
+            height: 20px;
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            cursor: nwse-resize;
+            background: linear-gradient(135deg, transparent 50%, rgba(255,255,255,0.2) 50%);
+            border-radius: 0 0 16px 0;
+        }
+
+        /* ========== ПАНЕЛЬ ЗАДАЧ ========== */
+        .taskbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: rgba(10, 12, 20, 0.92);
+            backdrop-filter: blur(24px);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            z-index: 10000;
+        }
+        .start-btn {
+            background: linear-gradient(135deg, #3b82f6, #a855f7);
+            border: none;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 28px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+        }
+        .start-btn:hover { transform: scale(1.02); box-shadow: 0 2px 10px rgba(168,85,247,0.4); }
+        .start-btn img { width: 18px; height: 18px; filter: brightness(0) invert(1); }
+
+        .taskbar-apps { display: flex; gap: 6px; margin-left: 15px; flex: 1; overflow-x: auto; }
+        .taskbar-app {
+            background: rgba(255,255,255,0.1);
+            padding: 5px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            font-size: 12px;
+            transition: 0.2s;
+        }
+        .taskbar-app:hover { background: rgba(255,255,255,0.2); }
+        .taskbar-time { color: white; font-size: 13px; padding: 0 15px; font-weight: 500; }
+
+        /* ========== МЕНЮ ПУСК ========== */
+        .start-menu {
+            position: fixed;
+            bottom: 65px;
+            left: 16px;
+            width: 340px;
+            background: rgba(16, 18, 28, 0.97);
+            backdrop-filter: blur(32px);
+            border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.15);
+            z-index: 10001;
+            display: none;
+            overflow: hidden;
+            animation: menuSlide 0.2s ease;
+        }
+        @keyframes menuSlide {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .start-menu.show { display: block; }
+        .start-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #3b82f6, #a855f7);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .user-avatar { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: 2px solid white; }
+        .user-info h3 { color: white; font-size: 18px; }
+        .user-info p { color: rgba(255,255,255,0.7); font-size: 12px; }
+        .start-apps { padding: 12px; max-height: 450px; overflow-y: auto; }
+        .start-app {
+            padding: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            border-radius: 12px;
+            transition: background 0.2s;
+            color: white;
+        }
+        .start-app:hover { background: rgba(255,255,255,0.1); }
+        .start-app img { width: 32px; height: 32px; }
+
+        /* ========== ВИДЖЕТЫ ========== */
+        .widgets {
+            position: fixed;
+            bottom: 70px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 1000;
+        }
+        .widget {
+            background: rgba(16, 18, 28, 0.85);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 12px 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            min-width: 180px;
+            text-align: center;
+        }
+        .widget-clock { font-size: 28px; font-weight: 600; }
+        .widget-date { font-size: 12px; opacity: 0.7; margin-top: 5px; }
+        .widget-weather { cursor: pointer; }
+        .weather-temp { font-size: 24px; font-weight: 600; }
+        .weather-desc { font-size: 12px; opacity: 0.7; }
+
+        /* ========== ДИАЛОГИ ========== */
+        .glass-dialog {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(24, 28, 42, 0.97);
+            backdrop-filter: blur(32px);
+            border-radius: 28px;
+            padding: 32px 40px;
+            text-align: center;
+            z-index: 100000;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: dialogZoom 0.2s ease;
+        }
+        @keyframes dialogZoom {
+            from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+        .glass-dialog h3 { color: white; margin-bottom: 24px; font-size: 22px; }
+        .glass-dialog-buttons { display: flex; gap: 16px; justify-content: center; }
+        .glass-btn {
+            padding: 10px 28px;
+            border: none;
+            border-radius: 40px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            margin-top: 1rem;
+            transition: 0.2s;
         }
+        .glass-btn.yes { background: linear-gradient(135deg, #ff5f56, #ff2e1a); color: white; }
+        .glass-btn.no { background: rgba(255,255,255,0.15); color: white; }
+        .glass-btn:hover { transform: scale(1.02); }
 
-        .avatar-classic {
-            width: 96px;
-            height: 96px;
+        /* ========== ЭКРАН ВЫКЛЮЧЕНИЯ ========== */
+        .power-off-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeInBlack 0.3s ease;
+        }
+        @keyframes fadeInBlack {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .power-on-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
             background: linear-gradient(135deg, #3b82f6, #a855f7);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 1rem auto;
-            font-size: 3rem;
-            color: white;
             cursor: pointer;
-        }
-
-        .step { display: none; }
-        .step.active { display: block; }
-
-        /* ========== ОС С НУЛЯ ========== */
-        .os {
-            display: none;
-            width: 100%;
-            height: 100vh;
-            flex-direction: column;
-            background-size: cover;
-            background-position: center;
-        }
-
-        .desktop {
-            flex: 1;
-            padding: 1.5rem;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, 100px);
-            gap: 1rem;
-            align-content: start;
-        }
-
-        .icon {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem 0.25rem;
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(12px);
-            border-radius: 1rem;
-            cursor: pointer;
-            color: white;
+            z-index: 100000;
+            box-shadow: 0 5px 20px rgba(168,85,247,0.5);
             transition: 0.2s;
+            border: 2px solid rgba(255,255,255,0.3);
         }
+        .power-on-btn:hover { transform: scale(1.1); box-shadow: 0 8px 30px rgba(168,85,247,0.8); }
+        .power-on-btn img { width: 28px; height: 28px; filter: brightness(0) invert(1); }
 
-        .icon i { font-size: 2rem; }
-        .icon span { font-size: 0.75rem; }
-        .icon:hover { background: rgba(255,255,255,0.25); transform: translateY(-4px); }
-
-        .taskbar {
-            background: rgba(10, 12, 18, 0.9);
-            backdrop-filter: blur(20px);
-            height: 56px;
-            display: flex;
-            align-items: center;
-            padding: 0 1rem;
-            gap: 1rem;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .start {
-            background: linear-gradient(90deg, #3b82f6, #a855f7);
-            padding: 0.5rem 1.2rem;
-            border-radius: 2rem;
-            font-weight: 600;
-            cursor: pointer;
-            color: white;
-        }
-
-        .clock {
-            margin-left: auto;
-            color: white;
-            background: rgba(0,0,0,0.4);
-            padding: 0.3rem 1rem;
-            border-radius: 2rem;
-        }
-
-        /* Меню пуск */
-        .start-panel {
-            position: fixed;
-            bottom: 72px;
-            left: 16px;
-            width: 280px;
-            background: rgba(18, 22, 32, 0.95);
-            backdrop-filter: blur(32px);
-            border-radius: 1.5rem;
-            padding: 1rem;
-            border: 1px solid rgba(255,255,255,0.1);
-            opacity: 0;
-            transform: translateY(10px);
-            transition: 0.2s;
-            pointer-events: none;
-        }
-
-        .start-panel.open {
-            opacity: 1;
-            transform: translateY(0);
-            pointer-events: all;
-        }
-
-        .start-panel button {
-            display: block;
-            width: 100%;
-            text-align: left;
-            background: rgba(255,255,255,0.05);
-            border: none;
-            padding: 0.6rem 1rem;
-            margin: 0.3rem 0;
-            border-radius: 1rem;
-            color: white;
-            cursor: pointer;
-        }
-
-        /* Окна с ресайзом */
-        .window {
-            position: fixed;
-            top: 10%;
-            left: 15%;
-            width: 500px;
-            min-width: 250px;
-            min-height: 250px;
-            background: rgba(20, 24, 36, 0.97);
-            backdrop-filter: blur(32px);
-            border-radius: 1.5rem;
-            border: 1px solid rgba(255,255,255,0.15);
-            display: flex;
-            flex-direction: column;
-            z-index: 1000;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-        }
-
-        .window-bar {
-            padding: 0.8rem 1rem;
-            background: rgba(59, 130, 246, 0.3);
-            border-radius: 1.5rem 1.5rem 0 0;
-            display: flex;
-            justify-content: space-between;
-            cursor: grab;
-            color: white;
-        }
-
-        .window-body {
-            flex: 1;
-            padding: 1rem;
-            overflow: auto;
-            color: #e0e0e0;
-        }
-
-        .window-resize {
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            width: 20px;
-            height: 20px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 0 0 1rem 0;
-            cursor: nw-resize;
-        }
-
-        .close {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.2rem;
-            cursor: pointer;
-        }
-
-        iframe.browser {
-            width: 100%;
-            height: 100%;
-            border: none;
-            border-radius: 1rem;
-        }
-
-        @media (max-width: 640px) {
-            .window { width: 90%; left: 5%; }
-            .start-panel { width: 240px; }
-        }
+        /* ========== СКРОЛЛ ========== */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+        
+        /* код для терминала */
+        .terminal { background: #0a0c10; font-family: 'Fira Code', monospace; padding: 12px; height: 100%; display: flex; flex-direction: column; }
+        .terminal-output { flex: 1; overflow-y: auto; color: #0f0; font-size: 13px; white-space: pre-wrap; margin-bottom: 8px; }
+        .terminal-input-line { display: flex; align-items: center; gap: 8px; }
+        .terminal-prompt { color: #0f0; font-family: monospace; }
+        .terminal-input { flex: 1; background: transparent; border: none; color: #0f0; font-family: monospace; font-size: 13px; outline: none; }
+        
+        .file-manager { padding: 16px; }
+        .file-item { padding: 10px; background: rgba(255,255,255,0.05); border-radius: 10px; margin-bottom: 6px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .file-item:hover { background: rgba(255,255,255,0.1); }
+        
+        .notes-area { width: 100%; height: 100%; background: rgba(0,0,0,0.3); border: none; color: white; padding: 16px; font-size: 14px; resize: none; outline: none; font-family: inherit; }
     </style>
 </head>
 <body>
 
-<!-- УСТАНОВЩИК (полностью новый) -->
-<div id="setupApp" class="setup">
-    <div class="setup-card">
-        <div id="step1" class="step active">
-            <div class="setup-title">Страна</div>
-            <select id="country" class="setup-select">
-                <option value="russia">Россия (RUB)</option><option value="usa">США (USD)</option>
-                <option value="germany">Германия (EUR)</option><option value="japan">Япония (JPY)</option>
-                <option value="china">Китай (CNY)</option><option value="taiwan">Тайвань → Китай</option>
-                <option value="ukraine">Украина (UAH)</option><option value="belarus">Беларусь (BYN)</option>
-                <option value="canada">Канада (CAD)</option><option value="uk">Великобритания (GBP)</option>
-                <option value="mexico">Мексика (MXN)</option><option value="denmark">Дания (DKK)</option>
-                <option value="greenland">Гренландия (DKK)</option><option value="iceland">Исландия (ISK)</option>
-                <option value="kazakhstan">Казахстан (KZT)</option><option value="kyrgyzstan">Кыргызстан (KGS)</option>
-                <option value="pakistan">Пакистан (PKR)</option><option value="southkorea">Южная Корея (KRW)</option>
-                <option value="northkorea">Северная Корея</option>
-                <option value="sudan">Судан (SDG)</option><option value="southsudan">Южный Судан (SSP)</option>
-                <option value="brazil">Бразилия (BRL)</option><option value="paraguay">Парагвай (PYG)</option>
-            </select>
-            <div id="countryErr" style="color:#f97316; margin-top:0.5rem; display:none;">Ошибка: Северная Корея</div>
-            <button class="setup-btn" onclick="nextStep(2)">Далее</button>
+<!-- УСТАНОВЩИК -->
+<div class="setup-overlay" id="setupOverlay">
+    <div class="setup-window">
+        <h1>✨ Nexus OS</h1>
+        <p>Операционная система нового поколения</p>
+        <input type="text" class="setup-input" id="username" placeholder="Ваше имя" value="Пользователь">
+        <div class="avatar-selector" id="avatarSelector">
+            <div class="avatar-option" data-avatar="https://randomuser.me/api/portraits/men/32.jpg"><img src="https://randomuser.me/api/portraits/men/32.jpg" alt="avatar1"></div>
+            <div class="avatar-option" data-avatar="https://randomuser.me/api/portraits/women/68.jpg"><img src="https://randomuser.me/api/portraits/women/68.jpg" alt="avatar2"></div>
+            <div class="avatar-option" data-avatar="https://randomuser.me/api/portraits/men/75.jpg"><img src="https://randomuser.me/api/portraits/men/75.jpg" alt="avatar3"></div>
+            <div class="avatar-option" data-avatar="https://randomuser.me/api/portraits/women/90.jpg"><img src="https://randomuser.me/api/portraits/women/90.jpg" alt="avatar4"></div>
         </div>
-
-        <div id="step2" class="step">
-            <div class="setup-title">Профиль</div>
-            <input type="text" id="username" class="setup-input" placeholder="Имя" value="Алексей">
-            <div id="avatarBox" class="avatar-classic">
-                <i class="fas fa-user"></i>
-            </div>
-            <input type="file" id="avatarFile" accept="image/*" style="display:none;">
-            <button class="setup-btn" id="changeAvatar">Сменить аватар</button>
-            <button class="setup-btn" onclick="nextStep(3)" style="margin-left:0.5rem;">Далее</button>
-        </div>
-
-        <div id="step3" class="step">
-            <div class="setup-title">Обои</div>
-            <select id="wallpaper" class="setup-select">
-                <option value="https://images.pexels.com/photos/998641/pexels-photo-998641.jpeg">Космос</option>
-                <option value="https://images.pexels.com/photos/2387793/pexels-photo-2387793.jpeg">Горы</option>
-                <option value="https://images.pexels.com/photos/1252890/pexels-photo-1252890.jpeg">Океан</option>
-                <option value="linear-gradient(135deg, #1a1a2e, #16213e)">Тёмный градиент</option>
-            </select>
-            <button class="setup-btn" id="finishSetup">Запустить</button>
-        </div>
+        <button class="setup-btn" onclick="installOS()">🚀 Установить</button>
     </div>
 </div>
 
-<!-- ОС -->
-<div id="osRoot" class="os">
-    <div class="desktop" id="desktopGrid"></div>
-    <div class="taskbar">
-        <div class="start" id="startTrigger">Пуск</div>
-        <div style="flex:1"></div>
-        <div class="clock" id="time"></div>
+<div id="desktop"></div>
+
+<!-- ВИДЖЕТЫ -->
+<div class="widgets" id="widgets">
+    <div class="widget widget-clock" id="widgetClock">
+        <div class="widget-clock" id="clockTime">--:--</div>
+        <div class="widget-date" id="clockDate">--</div>
+    </div>
+    <div class="widget widget-weather" id="weatherWidget" onclick="openWeatherApp()">
+        <div class="weather-temp" id="weatherTemp">--°C</div>
+        <div class="weather-desc" id="weatherDesc">Загрузка...</div>
+    </div>
+</div>
+
+<div class="taskbar" style="display: none;" id="taskbar">
+    <button class="start-btn" id="startBtn">
+        <img src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png" alt="start">
+        <span>Пуск</span>
+    </button>
+    <div class="taskbar-apps" id="taskbarApps"></div>
+    <div class="taskbar-time" id="clock"></div>
+</div>
+
+<div class="start-menu" id="startMenu">
+    <div class="start-header" id="startHeader">
+        <img class="user-avatar" id="userAvatar" src="" alt="avatar">
+        <div class="user-info">
+            <h3 id="userName"></h3>
+            <p>Nexus OS v1.0</p>
+        </div>
+    </div>
+    <div class="start-apps">
+        <div class="start-app" onclick="openBrowser()"><img src="https://cdn-icons-png.flaticon.com/512/5968/5968705.png" alt="browser"><span>Браузер</span></div>
+        <div class="start-app" onclick="openWeatherApp()"><img src="https://cdn-icons-png.flaticon.com/512/1163/1163624.png" alt="weather"><span>Погода</span></div>
+        <div class="start-app" onclick="openTerminal()"><img src="https://cdn-icons-png.flaticon.com/512/2997/2997925.png" alt="terminal"><span>Терминал</span></div>
+        <div class="start-app" onclick="openFileManager()"><img src="https://cdn-icons-png.flaticon.com/512/2997/2997928.png" alt="files"><span>Файлы</span></div>
+        <div class="start-app" onclick="openNotes()"><img src="https://cdn-icons-png.flaticon.com/512/2997/2997923.png" alt="notes"><span>Заметки</span></div>
+        <div class="start-app" onclick="openCalculator()"><img src="https://cdn-icons-png.flaticon.com/512/3665/3665923.png" alt="calc"><span>Калькулятор</span></div>
+        <div class="start-app" onclick="openSettings()"><img src="https://cdn-icons-png.flaticon.com/512/2961/2961925.png" alt="settings"><span>Настройки</span></div>
+        <div class="start-app" onclick="shutdown()"><img src="https://cdn-icons-png.flaticon.com/512/1828/1828774.png" alt="shutdown"><span>Выключение</span></div>
     </div>
 </div>
 
 <script>
-    // ЧИСТЫЙ JS С НУЛЯ
-    let user = {
-        name: "Алексей",
-        avatar: null,
-        country: "russia",
-        currency: "RUB",
-        wallpaper: "https://images.pexels.com/photos/998641/pexels-photo-998641.jpeg"
+    // ========== ПЕРЕМЕННЫЕ ==========
+    let currentUser = {};
+    let windowZIndex = 1000;
+    let openWindows = [];
+    let currentWallpaper = localStorage.getItem('nexus_wallpaper') || 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1920';
+    let selectedAvatar = 'https://randomuser.me/api/portraits/men/32.jpg';
+    
+    // Файловая система
+    let fileSystem = JSON.parse(localStorage.getItem('nexus_fs')) || {
+        'Документы': [],
+        'Загрузки': [],
+        'Изображения': [],
+        'Заметки.txt': 'Добро пожаловать в Nexus OS!\nЗдесь можно хранить ваши заметки.'
     };
-
-    const currencyMap = {
-        russia:"RUB", usa:"USD", germany:"EUR", japan:"JPY", china:"CNY",
-        taiwan:"CNY", ukraine:"UAH", belarus:"BYN", canada:"CAD", uk:"GBP",
-        mexico:"MXN", denmark:"DKK", greenland:"DKK", iceland:"ISK",
-        kazakhstan:"KZT", kyrgyzstan:"KGS", pakistan:"PKR", southkorea:"KRW",
-        northkorea:"ERROR", sudan:"SDG", southsudan:"SSP", brazil:"BRL", paraguay:"PYG"
-    };
-
-    let step = 1;
-    function nextStep(s) {
-        if(s===2) {
-            let c = document.getElementById('country').value;
-            if(c === 'northkorea') {
-                document.getElementById('countryErr').style.display = 'block';
-                return;
-            }
-            document.getElementById('countryErr').style.display = 'none';
-            user.country = c;
-            user.currency = currencyMap[c];
+    
+    // ========== ПОГОДА (реальное API) ==========
+    async function updateWeather() {
+        try {
+            const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=55.75&longitude=37.62&current_weather=true');
+            const data = await res.json();
+            const temp = data.current_weather.temperature;
+            const code = data.current_weather.weathercode;
+            const weatherMap = {0:'Ясно',1:'Облачно',2:'Облачно',3:'Пасмурно',45:'Туман',51:'Морось',61:'Дождь',71:'Снег',80:'Ливень'};
+            const desc = weatherMap[code] || 'Облачно';
+            document.getElementById('weatherTemp').innerHTML = `${Math.round(temp)}°C`;
+            document.getElementById('weatherDesc').innerHTML = desc;
+            localStorage.setItem('nexus_weather', JSON.stringify({temp, desc}));
+        } catch(e) {
+            document.getElementById('weatherTemp').innerHTML = '--°C';
+            document.getElementById('weatherDesc').innerHTML = 'Ошибка';
         }
-        document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
-        document.getElementById(`step${s}`).classList.add('active');
     }
-
-    // аватар
-    document.getElementById('changeAvatar')?.addEventListener('click', () => {
-        document.getElementById('avatarFile').click();
-    });
-    document.getElementById('avatarFile')?.addEventListener('change', (e) => {
-        if(e.target.files[0]) {
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                user.avatar = ev.target.result;
-                const box = document.getElementById('avatarBox');
-                box.innerHTML = `<img src="${user.avatar}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
-                box.style.background = 'none';
-                box.style.padding = '0';
+    
+    // ========== НАСТРОЙКИ ОБОЕВ ==========
+    function openSettings() {
+        const wallpapers = [
+            'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1920',
+            'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920',
+            'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1920',
+            'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?w=1920'
+        ];
+        const content = `
+            <div style="padding:16px;">
+                <h3 style="margin-bottom:16px;">🎨 Персонализация</h3>
+                <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:20px;">
+                    ${wallpapers.map(wp => `<div onclick="changeWallpaper('${wp}')" style="cursor:pointer; border-radius:12px; overflow:hidden; border:2px solid transparent;"><img src="${wp}" style="width:100%; height:80px; object-fit:cover;"></div>`).join('')}
+                </div>
+                <div style="text-align:center;">
+                    <input type="file" id="wallUpload" accept="image/*" style="display:none;">
+                    <button onclick="document.getElementById('wallUpload').click()" style="background:rgba(255,255,255,0.1); border:none; padding:10px 20px; border-radius:24px; color:white; cursor:pointer;">📸 Загрузить свои обои</button>
+                </div>
+            </div>
+        `;
+        const win = createWindow('Настройки', content, 450, 400);
+        setTimeout(() => {
+            const upload = document.getElementById('wallUpload');
+            if(upload) upload.onchange = (e) => {
+                if(e.target.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => changeWallpaper(ev.target.result);
+                    reader.readAsDataURL(e.target.files[0]);
+                }
             };
-            reader.readAsDataURL(e.target.files[0]);
-        }
-    });
-
-    document.getElementById('finishSetup')?.addEventListener('click', () => {
-        user.name = document.getElementById('username').value || "Пользователь";
-        user.wallpaper = document.getElementById('wallpaper').value;
-        document.getElementById('setupApp').style.display = 'none';
-        const os = document.getElementById('osRoot');
-        os.style.display = 'flex';
-        os.style.backgroundImage = `url('${user.wallpaper}')`;
-        if(user.wallpaper.includes('gradient')) os.style.background = user.wallpaper;
-        document.body.style.background = user.wallpaper;
-        renderDesktop();
-        setInterval(() => {
-            document.getElementById('time').innerHTML = new Date().toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'});
-        }, 1000);
-    });
-
-    function renderDesktop() {
-        const grid = document.getElementById('desktopGrid');
-        grid.innerHTML = `
-            <div class="icon" data-app="browser"><i class="fas fa-globe"></i><span>Браузер</span></div>
-            <div class="icon" data-app="weather"><i class="fas fa-cloud-sun"></i><span>Погода</span></div>
-            <div class="icon" data-app="currency"><i class="fas fa-coins"></i><span>Курс валют</span></div>
-            <div class="icon" data-app="settings"><i class="fas fa-sliders-h"></i><span>Настройки</span></div>
-            <div class="icon" data-app="games"><i class="fas fa-gamepad"></i><span>Игры</span></div>
-            <div class="icon" data-app="profile"><i class="fas fa-user"></i><span>Профиль</span></div>
-        `;
+        }, 100);
     }
-
-    // Меню пуск
-    let startPanel = null;
-    function toggleStart() {
-        if(startPanel) {
-            startPanel.classList.remove('open');
-            setTimeout(() => { if(startPanel) startPanel.remove(); startPanel=null; }, 200);
-            return;
+    
+    function changeWallpaper(url) {
+        currentWallpaper = url;
+        document.getElementById('desktop').style.backgroundImage = `url('${url}')`;
+        localStorage.setItem('nexus_wallpaper', url);
+    }
+    
+    // ========== ПОГОДА ПРИЛОЖЕНИЕ ==========
+    async function openWeatherApp() {
+        try {
+            const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=55.75&longitude=37.62&current_weather=true');
+            const data = await res.json();
+            const temp = data.current_weather.temperature;
+            const wind = data.current_weather.windspeed;
+            const content = `
+                <div style="padding:24px; text-align:center;">
+                    <div style="font-size:64px; margin-bottom:16px;">🌤️</div>
+                    <div style="font-size:48px; font-weight:600;">${Math.round(temp)}°C</div>
+                    <div style="font-size:16px; opacity:0.7; margin:10px 0;">Москва, Россия</div>
+                    <div style="font-size:14px; opacity:0.6;">Ветер: ${wind} км/ч</div>
+                    <button onclick="fetchRealWeather()" style="margin-top:20px; background:rgba(255,255,255,0.1); border:none; padding:10px 20px; border-radius:24px; color:white; cursor:pointer;">Обновить</button>
+                </div>
+            `;
+            createWindow('Погода', content, 400, 350);
+        } catch(e) {
+            createWindow('Погода', '<div style="padding:24px; text-align:center;">⚠️ Ошибка загрузки погоды</div>', 400, 300);
         }
-        const panel = document.createElement('div');
-        panel.className = 'start-panel';
-        panel.innerHTML = `
-            <div style="padding:0.5rem; color:white;">${user.name}</div>
-            <button data-app="browser"><i class="fas fa-globe"></i> Браузер</button>
-            <button data-app="weather"><i class="fas fa-cloud-sun"></i> Погода</button>
-            <button data-app="currency"><i class="fas fa-coins"></i> Курс валют</button>
-            <button data-app="settings"><i class="fas fa-sliders-h"></i> Настройки</button>
-            <button data-app="games"><i class="fas fa-gamepad"></i> Игры</button>
-            <button data-app="profile"><i class="fas fa-user"></i> Профиль</button>
+    }
+    
+    // ========== ТЕРМИНАЛ ==========
+    function openTerminal() {
+        const winId = `term_${Date.now()}`;
+        let history = [];
+        let historyIndex = -1;
+        
+        const content = `
+            <div class="terminal" id="terminal_${winId}">
+                <div class="terminal-output" id="termOut_${winId}">Nexus Terminal v1.0<br>Введите "help" для списка команд<br><br></div>
+                <div class="terminal-input-line">
+                    <span class="terminal-prompt">$></span>
+                    <input type="text" class="terminal-input" id="termInp_${winId}" autofocus>
+                </div>
+            </div>
         `;
-        document.body.appendChild(panel);
-        setTimeout(() => panel.classList.add('open'), 10);
-        startPanel = panel;
-        panel.addEventListener('click', (e) => {
-            const btn = e.target.closest('button');
-            if(btn && btn.dataset.app) {
-                openApp(btn.dataset.app);
-                toggleStart();
-            }
-        });
-        const closer = (e) => {
-            if(!panel.contains(e.target) && e.target.id !== 'startTrigger') {
-                toggleStart();
-                document.removeEventListener('click', closer);
+        
+        const win = createWindow('Терминал', content, 650, 450);
+        
+        setTimeout(() => {
+            const input = document.getElementById(`termInp_${winId}`);
+            const output = document.getElementById(`termOut_${winId}`);
+            
+            const commands = {
+                help: () => 'Доступны: help, clear, date, echo [текст], ls, mkdir [папка], touch [файл], weather',
+                clear: () => { if(output) output.innerHTML = 'Nexus Terminal v1.0<br><br>'; return ''; },
+                date: () => new Date().toString(),
+                echo: (args) => args.join(' '),
+                ls: () => Object.keys(fileSystem).filter(k => !k.includes('.')).join(', ') || '(пусто)',
+                mkdir: (args) => { if(args[0]) { fileSystem[args[0]] = []; saveFS(); return `Папка "${args[0]}" создана.`; } return 'Укажите имя папки'; },
+                touch: (args) => { if(args[0]) { fileSystem[args[0]] = ''; saveFS(); return `Файл "${args[0]}" создан.`; } return 'Укажите имя файла'; },
+                weather: async () => { try { const r = await fetch('https://api.open-meteo.com/v1/forecast?latitude=55.75&longitude=37.62&current_weather=true'); const d = await r.json(); return `Температура: ${d.current_weather.temperature}°C, Ветер: ${d.current_weather.windspeed} км/ч`; } catch(e) { return 'Ошибка погоды'; } }
+            };
+            
+            const processCommand = async (cmd) => {
+                const parts = cmd.trim().split(' ');
+                const command = parts[0].toLowerCase();
+                const args = parts.slice(1);
+                
+                if(commands[command]) {
+                    if(command === 'clear') {
+                        if(output) output.innerHTML = 'Nexus Terminal v1.0<br><br>';
+                        return '';
+                    }
+                    const result = await commands[command](args);
+                    return result;
+                }
+                return `Команда не найдена: ${command}. Введите "help"`;
+            };
+            
+            input.addEventListener('keypress', async (e) => {
+                if(e.key === 'Enter') {
+                    const cmd = input.value;
+                    if(cmd.trim()) {
+                        output.innerHTML += `$> ${cmd}\n`;
+                        const result = await processCommand(cmd);
+                        if(result) output.innerHTML += `${result}\n`;
+                        history.unshift(cmd);
+                        historyIndex = -1;
+                        input.value = '';
+                        output.scrollTop = output.scrollHeight;
+                    }
+                }
+            });
+            
+            input.addEventListener('keydown', (e) => {
+                if(e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if(historyIndex < history.length - 1) {
+                        historyIndex++;
+                        input.value = history[historyIndex];
+                    }
+                } else if(e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if(historyIndex > 0) {
+                        historyIndex--;
+                        input.value = history[historyIndex];
+                    } else if(historyIndex === 0) {
+                        historyIndex = -1;
+                        input.value = '';
+                    }
+                }
+            });
+        }, 50);
+    }
+    
+    // ========== ФАЙЛОВЫЙ МЕНЕДЖЕР ==========
+    function openFileManager() {
+        let currentPath = 'Документы';
+        
+        function renderFS(container) {
+            const items = fileSystem[currentPath] || [];
+            container.innerHTML = `
+                <div style="margin-bottom:12px;">
+                    <button onclick="goBack()" style="background:rgba(255,255,255,0.1); border:none; padding:6px 12px; border-radius:8px; color:white; cursor:pointer;">← Назад</button>
+                    <span style="margin-left:12px;">📁 ${currentPath}</span>
+                </div>
+                <div>
+                    ${items.length ? items.map(item => `<div class="file-item" onclick="openFile('${item}')"><span>📄</span> ${item}</div>`).join('') : '<div style="padding:20px; text-align:center; opacity:0.5;">Папка пуста</div>'}
+                </div>
+                <div style="margin-top:16px;">
+                    <input type="text" id="newFileName" placeholder="Название файла" style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:8px; color:white;">
+                    <button onclick="createFile()" style="background:rgba(255,255,255,0.1); border:none; padding:8px 16px; border-radius:8px; color:white; cursor:pointer;">➕ Создать</button>
+                </div>
+            `;
+        }
+        
+        const content = `<div id="fsContent_${Date.now()}" class="file-manager"></div>`;
+        const win = createWindow('Файлы', content, 500, 400);
+        
+        window.goBack = () => { currentPath = 'Документы'; renderFS(document.getElementById(`fsContent_${win.id}`)); };
+        window.openFile = (name) => { alert(`Открыть: ${name}`); };
+        window.createFile = () => {
+            const name = document.getElementById('newFileName')?.value;
+            if(name && !fileSystem[currentPath].includes(name)) {
+                fileSystem[currentPath].push(name);
+                saveFS();
+                renderFS(document.getElementById(`fsContent_${win.id}`));
             }
         };
-        setTimeout(() => document.addEventListener('click', closer), 50);
+        
+        setTimeout(() => {
+            const container = document.getElementById(`fsContent_${win.id}`);
+            if(container) renderFS(container);
+        }, 50);
     }
-    document.getElementById('startTrigger')?.addEventListener('click', toggleStart);
-
-    // Окна с ресайзом
-    function createWindow(title, bodyHtml) {
+    
+    // ========== ЗАМЕТКИ ==========
+    function openNotes() {
+        const content = `<textarea id="notesArea" class="notes-area">${fileSystem['Заметки.txt'] || ''}</textarea>`;
+        const win = createWindow('Заметки', content, 500, 400);
+        setTimeout(() => {
+            const area = document.getElementById('notesArea');
+            if(area) {
+                area.oninput = () => {
+                    fileSystem['Заметки.txt'] = area.value;
+                    saveFS();
+                };
+            }
+        }, 50);
+    }
+    
+    // ========== КАЛЬКУЛЯТОР ==========
+    function openCalculator() {
+        const content = `
+            <div style="padding:20px;">
+                <input type="text" id="calcDisplay" readonly style="width:100%; padding:15px; background:rgba(0,0,0,0.3); border:none; border-radius:12px; color:white; font-size:24px; text-align:right; margin-bottom:15px;">
+                <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px;">
+                    ${['7','8','9','/','4','5','6','*','1','2','3','-','0','.','=','+'].map(b => `<button onclick="calcPress('${b}')" style="background:rgba(255,255,255,0.1); border:none; padding:18px; border-radius:12px; color:white; font-size:18px; cursor:pointer;">${b}</button>`).join('')}
+                    <button onclick="calcClear()" style="grid-column:span 4; background:#ff5f56; border:none; padding:12px; border-radius:12px; color:white; cursor:pointer;">C</button>
+                </div>
+            </div>
+        `;
+        createWindow('Калькулятор', content, 350, 480);
+        window.calcPress = (val) => {
+            const disp = document.getElementById('calcDisplay');
+            if(val === '=' && disp) { try { disp.value = eval(disp.value); } catch(e) { disp.value = 'Ошибка'; } }
+            else if(disp) disp.value += val;
+        };
+        window.calcClear = () => { const d = document.getElementById('calcDisplay'); if(d) d.value = ''; };
+    }
+    
+    // ========== БРАУЗЕР ==========
+    function openBrowser() {
+        const content = `
+            <div style="display:flex; flex-direction:column; height:100%;">
+                <div style="display:flex; padding:12px; gap:8px; background:rgba(0,0,0,0.3);">
+                    <input type="text" id="browserUrl" placeholder="Введите URL" value="https://ya.ru" style="flex:1; padding:10px; background:rgba(255,255,255,0.1); border:none; border-radius:24px; color:white;">
+                    <button id="browserGo" style="background:rgba(255,255,255,0.1); border:none; padding:0 20px; border-radius:24px; color:white; cursor:pointer;">Перейти</button>
+                </div>
+                <iframe id="browserFrame" style="flex:1; border:none; background:white;"></iframe>
+            </div>
+        `;
+        const win = createWindow('Браузер', content, 900, 650);
+        setTimeout(() => {
+            const goBtn = document.getElementById('browserGo');
+            const urlInp = document.getElementById('browserUrl');
+            const frame = document.getElementById('browserFrame');
+            if(goBtn && urlInp && frame) {
+                goBtn.onclick = () => {
+                    let url = urlInp.value;
+                    if(!url.startsWith('http')) url = 'https://' + url;
+                    frame.src = url;
+                };
+                frame.src = 'https://ya.ru';
+            }
+        }, 50);
+    }
+    
+    // ========== ОБЩИЕ ФУНКЦИИ ОКОН ==========
+    function createWindow(title, contentHtml, width = 700, height = 500) {
+        const id = 'win_' + Date.now() + '_' + Math.random();
         const win = document.createElement('div');
         win.className = 'window';
+        win.id = id;
+        win.style.width = width + 'px';
+        win.style.height = height + 'px';
+        win.style.left = (50 + openWindows.length * 30) + 'px';
+        win.style.top = (50 + openWindows.length * 30) + 'px';
+        win.style.zIndex = ++windowZIndex;
         win.innerHTML = `
-            <div class="window-bar">
-                <span><i class="fas fa-window-maximize"></i> ${title}</span>
-                <button class="close">✕</button>
+            <div class="window-header">
+                <div class="drag-handle">
+                    <i class="fas fa-window-maximize" style="color:white; font-size:12px;"></i>
+                    <span class="window-title">${title}</span>
+                </div>
+                <div class="window-controls">
+                    <div class="win-btn minimize" onclick="minimizeWindow('${id}')"></div>
+                    <div class="win-btn close" onclick="closeWindow('${id}')"></div>
+                </div>
             </div>
-            <div class="window-body">${bodyHtml}</div>
-            <div class="window-resize"></div>
+            <div class="window-content">${contentHtml}</div>
+            <div class="resize-handle"></div>
         `;
-        document.body.appendChild(win);
-        win.querySelector('.close').onclick = () => win.remove();
-
-        // drag
-        let drag = false, dx, dy;
-        const bar = win.querySelector('.window-bar');
-        bar.addEventListener('mousedown', (e) => {
-            if(e.target.classList.contains('close')) return;
-            drag = true;
-            dx = e.clientX - win.offsetLeft;
-            dy = e.clientY - win.offsetTop;
+        document.getElementById('desktop').appendChild(win);
+        makeDraggable(win);
+        makeResizable(win);
+        openWindows.push({ id, name: title });
+        updateTaskbar();
+        
+        // Сохраняем id для доступа
+        win.id_real = id;
+        return win;
+    }
+    
+    window.minimizeWindow = (id) => {
+        const w = document.getElementById(id);
+        if(w) w.style.display = 'none';
+    };
+    
+    window.closeWindow = (id) => {
+        document.getElementById(id)?.remove();
+        openWindows = openWindows.filter(w => w.id !== id);
+        updateTaskbar();
+    };
+    
+    function updateTaskbar() {
+        const bar = document.getElementById('taskbarApps');
+        if(bar) {
+            bar.innerHTML = openWindows.map(win => `
+                <div class="taskbar-app" onclick="restoreWindow('${win.id}')">
+                    <i class="fas fa-window-restore" style="font-size:10px;"></i>
+                    <span>${win.name.length > 20 ? win.name.slice(0,17)+'...' : win.name}</span>
+                </div>
+            `).join('');
+        }
+    }
+    
+    window.restoreWindow = (id) => {
+        const win = document.getElementById(id);
+        if(win) {
+            win.style.display = 'flex';
+            win.style.zIndex = ++windowZIndex;
+        }
+    };
+    
+    function makeDraggable(el) {
+        const handle = el.querySelector('.drag-handle');
+        let isDrag = false, offX, offY;
+        handle.addEventListener('mousedown', (e) => {
+            if(e.target.classList.contains('win-btn')) return;
+            isDrag = true;
+            offX = e.clientX - el.offsetLeft;
+            offY = e.clientY - el.offsetTop;
+            el.style.zIndex = ++windowZIndex;
             document.addEventListener('mousemove', onMove);
             document.addEventListener('mouseup', onUp);
         });
-        function onMove(e) { if(drag) { win.style.left = (e.clientX - dx) + 'px'; win.style.top = (e.clientY - dy) + 'px'; win.style.right = 'auto'; }}
-        function onUp() { drag = false; document.removeEventListener('mousemove', onMove); }
-
-        // resize
-        let resize = false, sx, sy, sw, sh;
-        const handle = win.querySelector('.window-resize');
+        function onMove(e) { if(isDrag) { el.style.left = (e.clientX - offX) + 'px'; el.style.top = (e.clientY - offY) + 'px'; el.style.right = 'auto'; } }
+        function onUp() { isDrag = false; document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); }
+    }
+    
+    function makeResizable(el) {
+        const handle = el.querySelector('.resize-handle');
+        let isRes = false, startX, startY, startW, startH;
         handle.addEventListener('mousedown', (e) => {
-            resize = true;
-            sx = e.clientX;
-            sy = e.clientY;
-            sw = win.offsetWidth;
-            sh = win.offsetHeight;
-            e.preventDefault();
-            document.addEventListener('mousemove', onResize);
-            document.addEventListener('mouseup', stopResize);
+            e.stopPropagation();
+            isRes = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            startW = el.offsetWidth;
+            startH = el.offsetHeight;
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
         });
-        function onResize(e) {
-            if(resize) {
-                let nw = sw + (e.clientX - sx);
-                let nh = sh + (e.clientY - sy);
-                if(nw > 280) win.style.width = nw + 'px';
-                if(nh > 200) win.style.height = nh + 'px';
+        function onMove(e) {
+            if(isRes) {
+                let newW = startW + (e.clientX - startX);
+                let newH = startH + (e.clientY - startY);
+                if(newW > 350) el.style.width = newW + 'px';
+                if(newH > 250) el.style.height = newH + 'px';
             }
         }
-        function stopResize() { resize = false; document.removeEventListener('mousemove', onResize); }
-        return win;
+        function onUp() { isRes = false; document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); }
     }
-
-    // Приложения
-    async function getWeather(city) {
-        try {
-            const geo = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${city}&count=1`);
-            const g = await geo.json();
-            if(!g.results) return null;
-            const w = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${g.results[0].latitude}&longitude=${g.results[0].longitude}&current_weather=true`);
-            const weather = await w.json();
-            return { name: g.results[0].name, temp: weather.current_weather.temperature, wind: weather.current_weather.windspeed };
-        } catch(e) { return null; }
+    
+    function saveFS() { localStorage.setItem('nexus_fs', JSON.stringify(fileSystem)); }
+    
+    // ========== ДИАЛОГ И ВЫКЛЮЧЕНИЕ ==========
+    function showGlassDialog(options) {
+        return new Promise((resolve) => {
+            const dialog = document.createElement('div');
+            dialog.className = 'glass-dialog';
+            dialog.innerHTML = `
+                <h3>${options.title || 'Подтверждение'}</h3>
+                <div class="glass-dialog-buttons">
+                    <button class="glass-btn yes">${options.yesText || 'Да'}</button>
+                    <button class="glass-btn no">${options.noText || 'Нет'}</button>
+                </div>
+            `;
+            document.body.appendChild(dialog);
+            dialog.querySelector('.yes').onclick = () => { dialog.remove(); resolve(true); };
+            dialog.querySelector('.no').onclick = () => { dialog.remove(); resolve(false); };
+        });
     }
-
-    function openApp(id) {
-        if(id === 'browser') {
-            const wid = Date.now();
-            const win = createWindow('Браузер', `<div style="height:100%; display:flex; flex-direction:column;"><input id="url_${wid}" placeholder="Введите сайт" style="padding:0.5rem; border-radius:2rem; margin-bottom:0.5rem;"><button id="go_${wid}" style="margin-bottom:0.5rem;">Перейти</button><iframe id="frame_${wid}" class="browser" src="https://yandex.ru"></iframe></div>`);
-            setTimeout(() => {
-                const go = win.querySelector(`#go_${wid}`);
-                const inp = win.querySelector(`#url_${wid}`);
-                const frame = win.querySelector(`#frame_${wid}`);
-                if(go && inp && frame) go.onclick = () => { let url = inp.value; if(!url.startsWith('http')) url = 'https://' + url; frame.src = url; };
-            }, 20);
-        }
-        else if(id === 'weather') {
-            const win = createWindow('Погода', `<div><input id="weatherCity" placeholder="Город" value="Москва"><button id="getWeatherBtn">Узнать</button><div id="weatherRes" style="margin-top:1rem; background:rgba(255,255,255,0.1); border-radius:1rem; padding:1rem;"></div></div>`);
-            setTimeout(async () => {
-                const btn = win.querySelector('#getWeatherBtn');
-                const inp = win.querySelector('#weatherCity');
-                const res = win.querySelector('#weatherRes');
-                async function load() {
-                    if(res) res.innerHTML = "Загрузка...";
-                    const data = await getWeather(inp?.value || "Москва");
-                    if(data && res) res.innerHTML = `${data.name}: ${data.temp}°C, ветер ${data.wind} км/ч`;
-                    else if(res) res.innerHTML = "Солнечно, +24°C";
-                }
-                if(btn) btn.onclick = load;
-                load();
-            }, 20);
-        }
-        else if(id === 'currency') {
-            const win = createWindow(`Курс валют (${user.currency})`, `<div id="currData">Загрузка...</div>`);
-            setTimeout(async () => {
-                const cont = win.querySelector('#currData');
-                try {
-                    const r = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
-                    const d = await r.json();
-                    if(cont) cont.innerHTML = `<div style="background:rgba(255,255,255,0.1); border-radius:1rem; padding:1rem;"><h3>1 USD = ${d.rates[user.currency]} ${user.currency}</h3><p>EUR: ${d.rates.EUR}</p><p>GBP: ${d.rates.GBP}</p><p>CNY: ${d.rates.CNY}</p><button id="refreshCurr">Обновить</button></div>`;
-                    const ref = win.querySelector('#refreshCurr');
-                    if(ref) ref.onclick = () => openApp('currency');
-                } catch(e) { if(cont) cont.innerHTML = "Ошибка загрузки"; }
-            }, 20);
-        }
-        else if(id === 'settings') {
-            const win = createWindow('Настройки', `<div><button id="uploadWall">Сменить обои</button><input type="file" id="wallFile"><button id="nightMode">Ночной режим</button></div>`);
-            setTimeout(() => {
-                const up = win.querySelector('#uploadWall');
-                const file = win.querySelector('#wallFile');
-                if(up && file) up.onclick = () => file.click();
-                if(file) file.onchange = (e) => {
-                    if(e.target.files[0]) {
-                        const url = URL.createObjectURL(e.target.files[0]);
-                        document.getElementById('osRoot').style.backgroundImage = `url(${url})`;
-                    }
-                };
-                win.querySelector('#nightMode')?.addEventListener('click', () => document.body.classList.toggle('night'));
-            }, 20);
-        }
-        else if(id === 'games') {
-            const win = createWindow('Игры', `<div><button id="guess">Угадай число</button><button id="dice">Кубик</button><div id="gameOut"></div></div>`);
-            setTimeout(() => {
-                win.querySelector('#guess')?.addEventListener('click', () => {
-                    let s = Math.floor(Math.random()*100)+1;
-                    let g = prompt("Число 1-100");
-                    while(g != s && g != null) g = prompt(g > s ? "Меньше" : "Больше");
-                    alert("Победа!");
-                });
-                win.querySelector('#dice')?.addEventListener('click', () => {
-                    win.querySelector('#gameOut').innerHTML = `Выпало: ${Math.floor(Math.random()*6)+1}`;
-                });
-            }, 20);
-        }
-        else if(id === 'profile') {
-            const avatarHtml = user.avatar ? `<img src="${user.avatar}" style="width:80px; height:80px; border-radius:50%;">` : `<i class="fas fa-user" style="font-size:3rem;"></i>`;
-            const win = createWindow('Профиль', `<div style="display:flex; gap:1rem;">${avatarHtml}<div><h3>${user.name}</h3><p>${user.country}, ${user.currency}</p><button id="editName">Изменить имя</button></div></div>`);
-            setTimeout(() => {
-                win.querySelector('#editName')?.addEventListener('click', () => {
-                    let n = prompt("Новое имя", user.name);
-                    if(n) user.name = n;
-                });
-            }, 20);
-        }
+    
+    async function shutdown() {
+        const confirmed = await showGlassDialog({ title: 'Выключить компьютер?', yesText: 'Выключить', noText: 'Отмена' });
+        if(!confirmed) return;
+        
+        const powerOff = document.createElement('div');
+        powerOff.className = 'power-off-screen';
+        powerOff.innerHTML = `
+            <div style="text-align:center; color:white;">
+                <h1>Nexus OS</h1>
+                <p style="margin-top:20px;">Завершение работы...</p>
+                <div style="width:300px; height:4px; background:#333; margin-top:30px; border-radius:2px; overflow:hidden;">
+                    <div style="width:0%; height:100%; background:#a855f7; animation: progress 2s linear forwards;"></div>
+                </div>
+            </div>
+            <style>@keyframes progress { 0% { width:0%; } 100% { width:100%; } }</style>
+        `;
+        document.body.appendChild(powerOff);
+        document.body.style.pointerEvents = 'none';
+        
+        setTimeout(() => {
+            powerOff.remove();
+            const blackScreen = document.createElement('div');
+            blackScreen.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:99998;';
+            document.body.appendChild(blackScreen);
+            
+            const powerBtn = document.createElement('div');
+            powerBtn.className = 'power-on-btn';
+            powerBtn.innerHTML = '<img src="https://cdn-icons-png.flaticon.com/512/1828/1828774.png" alt="power">';
+            powerBtn.onclick = () => {
+                powerBtn.remove();
+                blackScreen.remove();
+                document.body.style.pointerEvents = '';
+                location.reload();
+            };
+            document.body.appendChild(powerBtn);
+        }, 2000);
     }
-
-    document.getElementById('desktopGrid')?.addEventListener('click', (e) => {
-        const icon = e.target.closest('.icon');
-        if(icon && icon.dataset.app) openApp(icon.dataset.app);
+    
+    // ========== УСТАНОВКА ==========
+    function createDesktopIcons() {
+        const desktop = document.getElementById('desktop');
+        const icons = [
+            { name: 'Браузер', icon: 'https://cdn-icons-png.flaticon.com/512/5968/5968705.png', x: 20, y: 20, action: openBrowser },
+            { name: 'Погода', icon: 'https://cdn-icons-png.flaticon.com/512/1163/1163624.png', x: 20, y: 120, action: openWeatherApp },
+            { name: 'Терминал', icon: 'https://cdn-icons-png.flaticon.com/512/2997/2997925.png', x: 20, y: 220, action: openTerminal },
+            { name: 'Файлы', icon: 'https://cdn-icons-png.flaticon.com/512/2997/2997928.png', x: 20, y: 320, action: openFileManager },
+            { name: 'Заметки', icon: 'https://cdn-icons-png.flaticon.com/512/2997/2997923.png', x: 20, y: 420, action: openNotes },
+            { name: 'Калькулятор', icon: 'https://cdn-icons-png.flaticon.com/512/3665/3665923.png', x: 20, y: 520, action: openCalculator },
+            { name: 'Настройки', icon: 'https://cdn-icons-png.flaticon.com/512/2961/2961925.png', x: 20, y: 620, action: openSettings }
+        ];
+        icons.forEach(icon => {
+            const el = document.createElement('div');
+            el.className = 'desktop-icon';
+            el.style.left = icon.x + 'px';
+            el.style.top = icon.y + 'px';
+            el.innerHTML = `<img src="${icon.icon}"><span>${icon.name}</span>`;
+            el.onclick = icon.action;
+            desktop.appendChild(el);
+        });
+    }
+    
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('clock').innerText = now.toLocaleTimeString('ru-RU');
+        document.getElementById('clockTime').innerHTML = now.toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' });
+        document.getElementById('clockDate').innerHTML = now.toLocaleDateString('ru-RU', { day:'numeric', month:'long' });
+    }
+    
+    function setupStartMenu() {
+        const startBtn = document.getElementById('startBtn');
+        const startMenu = document.getElementById('startMenu');
+        startBtn.addEventListener('click', (e) => { e.stopPropagation(); startMenu.classList.toggle('show'); });
+        document.addEventListener('click', (e) => { if(!startMenu.contains(e.target) && !startBtn.contains(e.target)) startMenu.classList.remove('show'); });
+    }
+    
+    function installOS() {
+        const username = document.getElementById('username').value || 'Пользователь';
+        currentUser = { name: username, avatar: selectedAvatar };
+        localStorage.setItem('nexus_user', JSON.stringify(currentUser));
+        document.getElementById('setupOverlay').style.display = 'none';
+        document.getElementById('desktop').style.display = 'block';
+        document.getElementById('taskbar').style.display = 'flex';
+        document.getElementById('desktop').style.backgroundImage = `url('${currentWallpaper}')`;
+        document.getElementById('userAvatar').src = currentUser.avatar;
+        document.getElementById('userName').innerText = currentUser.name;
+        createDesktopIcons();
+        updateClock();
+        updateWeather();
+        setInterval(updateClock, 1000);
+        setInterval(updateWeather, 600000);
+        setupStartMenu();
+        
+        // Приветствие
+        const toast = document.createElement('div');
+        toast.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.9); backdrop-filter:blur(20px); padding:30px 50px; border-radius:28px; text-align:center; z-index:30000; animation:fadeOut 3s ease forwards;';
+        toast.innerHTML = `<img src="${currentUser.avatar}" style="width:80px; height:80px; border-radius:50%; margin-bottom:15px;"><h2 style="color:white;">Добро пожаловать, ${currentUser.name}!</h2><p style="color:rgba(255,255,255,0.7);">Nexus OS v1.0</p>`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+    
+    // Выбор аватара
+    document.querySelectorAll('.avatar-option').forEach(opt => {
+        opt.addEventListener('click', function() {
+            document.querySelectorAll('.avatar-option').forEach(a => a.classList.remove('selected'));
+            this.classList.add('selected');
+            selectedAvatar = this.dataset.avatar;
+        });
     });
-
-    const night = document.createElement('style');
-    night.textContent = `body.night .os { background: #1a1412 !important; } body.night .window { background: rgba(20,18,20,0.97); }`;
-    document.head.appendChild(night);
+    document.querySelector('.avatar-option')?.classList.add('selected');
+    
+    // Проверка сохранённого пользователя
+    const savedUser = localStorage.getItem('nexus_user');
+    if(savedUser) {
+        currentUser = JSON.parse(savedUser);
+        document.getElementById('setupOverlay').style.display = 'none';
+        document.getElementById('desktop').style.display = 'block';
+        document.getElementById('taskbar').style.display = 'flex';
+        document.getElementById('desktop').style.backgroundImage = `url('${currentWallpaper}')`;
+        document.getElementById('userAvatar').src = currentUser.avatar;
+        document.getElementById('userName').innerText = currentUser.name;
+        createDesktopIcons();
+        updateClock();
+        updateWeather();
+        setInterval(updateClock, 1000);
+        setInterval(updateWeather, 600000);
+        setupStartMenu();
+    }
+    
+    // Глобальные функции для окон
+    window.fetchRealWeather = updateWeather;
+    window.openWeatherApp = openWeatherApp;
+    window.openTerminal = openTerminal;
+    window.openFileManager = openFileManager;
+    window.openNotes = openNotes;
+    window.openCalculator = openCalculator;
+    window.openSettings = openSettings;
+    window.openBrowser = openBrowser;
+    window.changeWallpaper = changeWallpaper;
+    window.shutdown = shutdown;
+    window.calcPress = (val) => {};
+    window.calcClear = () => {};
 </script>
 </body>
 </html>
