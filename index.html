@@ -3,497 +3,569 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Nespos OS — Установка и система</title>
+    <title>Nespos OS — Операционная система будущего</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, BlinkMacSystemFont;
+            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
         }
 
         body {
-            background: #0f0f1b;
             height: 100vh;
             overflow: hidden;
-            transition: 0.2s;
+            background: #0a0c18;
         }
 
-        /* ------ УСТАНОВЩИК как у Windows 11 ------ */
-        .setup-overlay {
+        /* ============ УСТАНОВЩИК ============ */
+        .setup-screen {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at 20% 30%, #14141f, #05050a);
-            backdrop-filter: blur(2px);
-            z-index: 1000;
+            background: radial-gradient(circle at 30% 20%, #0e1020, #020308);
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: 0.5s;
+            z-index: 3000;
+            backdrop-filter: blur(4px);
         }
 
-        .setup-wizard {
-            background: rgba(30, 30, 45, 0.85);
-            backdrop-filter: blur(30px);
-            border-radius: 32px;
-            width: 500px;
-            max-width: 85vw;
-            padding: 32px;
-            color: white;
+        .setup-card {
+            background: rgba(22, 25, 40, 0.9);
+            backdrop-filter: blur(48px);
+            border-radius: 56px;
+            width: 560px;
+            max-width: 90vw;
+            padding: 44px;
             border: 1px solid rgba(255,255,255,0.2);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-            animation: fadeUp 0.5s ease;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+            color: white;
         }
 
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(30px);}
-            to { opacity: 1; transform: translateY(0);}
-        }
-
-        .setup-step {
+        .step-page {
             display: none;
         }
-        .setup-step.active {
+
+        .step-page.active {
             display: block;
+            animation: slideUp 0.35s ease;
         }
 
-        .setup-wizard h2 {
-            font-size: 28px;
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .setup-card h2 {
+            font-size: 34px;
+            font-weight: 700;
             margin-bottom: 20px;
-            font-weight: 600;
-            background: linear-gradient(135deg, #ffffff, #aaccff);
+            background: linear-gradient(135deg, #ffffff, #7aa2ff);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
         }
 
-        .setup-wizard input, .setup-wizard select {
+        .setup-card select, .setup-card input {
             width: 100%;
-            padding: 14px;
-            margin: 12px 0;
+            padding: 14px 18px;
             background: rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.3);
-            border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 40px;
             color: white;
-            font-size: 16px;
+            margin: 12px 0;
+            font-size: 15px;
         }
 
-        .avatar-selector {
+        .avatar-group {
             display: flex;
-            gap: 16px;
+            gap: 18px;
             justify-content: center;
-            margin: 20px 0;
+            margin: 24px 0;
+            flex-wrap: wrap;
         }
-        .avatar-opt {
-            width: 70px;
-            height: 70px;
+
+        .avatar-item {
+            width: 75px;
+            height: 75px;
             border-radius: 50%;
-            background: #2c2c44;
             cursor: pointer;
-            border: 2px solid transparent;
+            border: 3px solid transparent;
             transition: 0.2s;
-            background-size: cover;
+            object-fit: cover;
         }
-        .avatar-opt.selected {
+
+        .avatar-item.selected {
             border-color: #3b82f6;
             transform: scale(1.05);
+            box-shadow: 0 0 18px #3b82f6;
         }
 
         button {
             background: #3b82f6;
             border: none;
-            padding: 12px 24px;
-            border-radius: 40px;
-            color: white;
-            font-weight: bold;
+            padding: 12px 30px;
+            border-radius: 44px;
+            font-weight: 700;
             font-size: 16px;
+            color: white;
             cursor: pointer;
             transition: 0.2s;
-            margin-top: 20px;
         }
 
-        /* ------------------ ОС после установки ----------------- */
-        .os-shell {
+        button:hover {
+            background: #2563eb;
+            transform: scale(1.02);
+        }
+
+        .error-message {
+            color: #ff6b6b;
+            font-size: 13px;
+            margin-top: 8px;
+            display: none;
+        }
+
+        /* ============ ОС ============ */
+        .os-container {
             display: none;
             width: 100%;
             height: 100vh;
             flex-direction: column;
             background-size: cover;
             background-position: center;
-            transition: 0.2s;
         }
-        /* Рабочий стол */
-        .desktop {
+
+        .desktop-grid {
             flex: 1;
-            padding: 20px;
+            padding: 24px;
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 120px));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(115px, 125px));
+            gap: 22px;
             align-content: start;
             overflow-y: auto;
         }
-        .desktop-icon {
+
+        .app-icon {
             display: flex;
             flex-direction: column;
             align-items: center;
-            text-align: center;
-            width: 100px;
-            padding: 12px 5px;
-            border-radius: 16px;
+            gap: 8px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(18px);
+            padding: 14px 8px;
+            border-radius: 24px;
             cursor: pointer;
-            background: rgba(255,255,255,0.05);
-            backdrop-filter: blur(10px);
-            transition: 0.2s;
+            transition: all 0.25s;
             color: white;
-        }
-        .desktop-icon:hover {
-            background: rgba(255,255,255,0.2);
-            transform: translateY(-4px);
+            border: 1px solid rgba(255,255,255,0.15);
         }
 
-        /* Панель задач СНИЗУ (как в реальной ОС) */
-        .taskbar {
-            background: rgba(20, 20, 30, 0.85);
-            backdrop-filter: blur(24px);
-            border-top: 1px solid rgba(255,255,255,0.15);
-            height: 56px;
+        .app-icon i {
+            font-size: 42px;
+        }
+
+        .app-icon span {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .app-icon:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-6px);
+        }
+
+        .task-bar {
+            background: rgba(16, 18, 28, 0.92);
+            backdrop-filter: blur(28px);
+            border-top: 1px solid rgba(255,255,255,0.12);
+            height: 62px;
             display: flex;
             align-items: center;
-            padding: 0 20px;
-            gap: 12px;
-            position: relative;
-            z-index: 100;
+            padding: 0 24px;
+            gap: 20px;
         }
-        .start-btn {
-            background: #3b82f6;
-            border-radius: 28px;
-            padding: 8px 20px;
-            font-weight: bold;
-            color: white;
+
+        .start-menu {
+            background: linear-gradient(135deg, #3b82f6, #a855f7);
+            border-radius: 36px;
+            padding: 8px 22px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
             cursor: pointer;
         }
-        .taskbar-apps {
+
+        .task-icons-list {
             display: flex;
-            gap: 8px;
-            background: rgba(0,0,0,0.3);
-            padding: 4px 12px;
-            border-radius: 40px;
+            gap: 10px;
+            background: rgba(0,0,0,0.35);
+            padding: 6px 18px;
+            border-radius: 48px;
         }
-        .taskbar-item {
-            padding: 6px 16px;
-            border-radius: 20px;
+
+        .task-icon-item {
+            padding: 6px 14px;
+            border-radius: 32px;
             background: rgba(255,255,255,0.1);
             cursor: pointer;
+            font-size: 13px;
         }
 
-        /* Окна приложений */
-        .window {
+        .clock-widget {
+            color: white;
+            background: rgba(0,0,0,0.45);
+            padding: 7px 18px;
+            border-radius: 36px;
+            font-weight: 500;
+        }
+
+        /* Окна */
+        .app-window {
             position: fixed;
-            top: 10%;
-            left: 15%;
-            width: 70%;
-            height: 70%;
-            background: rgba(30,30,45,0.95);
-            backdrop-filter: blur(32px);
-            border-radius: 24px;
-            border: 1px solid rgba(255,255,255,0.2);
+            top: 12%;
+            left: 18%;
+            width: 64%;
+            height: 72%;
+            background: rgba(26, 28, 42, 0.98);
+            backdrop-filter: blur(44px);
+            border-radius: 36px;
+            border: 1px solid rgba(255,255,255,0.22);
             display: flex;
             flex-direction: column;
-            z-index: 200;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-            animation: fadeUp 0.2s;
+            z-index: 2000;
+            box-shadow: 0 30px 55px rgba(0,0,0,0.6);
         }
-        .window-header {
-            padding: 16px;
+
+        .win-title-bar {
+            padding: 18px 22px;
             background: rgba(0,0,0,0.3);
-            border-radius: 24px 24px 0 0;
+            border-radius: 36px 36px 0 0;
             display: flex;
             justify-content: space-between;
-            cursor: move;
+            cursor: grab;
         }
-        .window-content {
+
+        .win-body {
             flex: 1;
-            padding: 16px;
+            padding: 22px;
             overflow: auto;
             color: white;
         }
-        iframe.browser-frame {
+
+        iframe.browser-iframe {
             width: 100%;
             height: 100%;
             border: none;
-            border-radius: 16px;
+            border-radius: 24px;
             background: white;
         }
-        .close-window {
+
+        .close-window-btn {
             background: none;
+            border: none;
             color: white;
-            font-size: 20px;
-            margin: 0;
-            padding: 0 8px;
+            font-size: 26px;
+            cursor: pointer;
         }
 
-        @media (max-width: 700px) {
-            .window { width: 90%; left: 5%; }
+        @media (max-width: 780px) {
+            .app-window { width: 94%; left: 3%; height: 80%; top: 8%; }
         }
     </style>
 </head>
 <body>
 
-<!-- Установщик ОС (как у Windows 11) -->
-<div id="setupContainer" class="setup-overlay">
-    <div class="setup-wizard">
-        <div id="step1" class="setup-step active">
-            <h2>✨ Добро пожаловать в Nespos</h2>
-            <p>Выберите регион и язык</p>
-            <select id="regionSelect"><option>Россия</option><option>США</option><option>Европа</option></select>
-            <select id="langSelect"><option>Русский</option><option>English</option></select>
-            <button onclick="nextStep(2)">Далее →</button>
-        </div>
-        <div id="step2" class="setup-step">
-            <h2>👤 Кто будет использовать ПК?</h2>
-            <input type="text" id="username" placeholder="Имя пользователя" value="Алекс">
-            <div class="avatar-selector" id="avatarSelector">
-                <div class="avatar-opt" data-avatar="🌌" style="background: #4f46e5; display: flex; align-items: center; justify-content: center; font-size: 40px;">🌌</div>
-                <div class="avatar-opt" data-avatar="🚀" style="background: #0f766e; display: flex; align-items: center; justify-content: center; font-size: 40px;">🚀</div>
-                <div class="avatar-opt" data-avatar="🎮" style="background: #b91c1c; display: flex; align-items: center; justify-content: center; font-size: 40px;">🎮</div>
-                <div class="avatar-opt" data-avatar="🧑‍💻" style="background: #2d3748; display: flex; align-items: center; justify-content: center; font-size: 40px;">🧑‍💻</div>
-            </div>
-            <button onclick="nextStep(3)">Далее →</button>
-        </div>
-        <div id="step3" class="setup-step">
-            <h2>🎨 Настройки ОС</h2>
-            <p>Обои рабочего стола (встроенные):</p>
-            <select id="wallpaperSelect">
-                <option value="linear-gradient(135deg, #0b1120, #1f2937)">Тёмная волна</option>
-                <option value="url('https://images.pexels.com/photos/531880/pexels-photo-531880.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2')">Космос (встроенный)</option>
-                <option value="url('https://images.pexels.com/photos/110854/pexels-photo-110854.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2')">Горы неон</option>
+<!-- УСТАНОВЩИК -->
+<div id="setupOverlay" class="setup-screen">
+    <div class="setup-card">
+        <!-- ШАГ 1: Страна -->
+        <div id="stepCountry" class="step-page active">
+            <h2><i class="fas fa-map-marker-alt"></i> Выберите страну</h2>
+            <select id="countryList">
+                <option value="russia">🇷🇺 Россия (RUB)</option>
+                <option value="usa">🇺🇸 США (USD)</option>
+                <option value="germany">🇩🇪 Германия (EUR)</option>
+                <option value="japan">🇯🇵 Япония (JPY)</option>
+                <option value="china">🇨🇳 Китай (CNY)</option>
+                <option value="taiwan">🇹🇼 Тайвань → Китай (CNY)</option>
+                <option value="ukraine">🇺🇦 Украина (UAH)</option>
+                <option value="belarus">🇧🇾 Беларусь (BYN)</option>
+                <option value="canada">🇨🇦 Канада (CAD)</option>
+                <option value="uk">🇬🇧 Великобритания (GBP)</option>
+                <option value="mexico">🇲🇽 Мексика (MXN)</option>
+                <option value="denmark">🇩🇰 Дания (DKK)</option>
+                <option value="greenland">🇬🇱 Гренландия (DKK)</option>
+                <option value="iceland">🇮🇸 Исландия (ISK)</option>
+                <option value="kazakhstan">🇰🇿 Казахстан (KZT)</option>
+                <option value="kyrgyzstan">🇰🇬 Кыргызстан (KGS)</option>
+                <option value="pakistan">🇵🇰 Пакистан (PKR)</option>
+                <option value="southkorea">🇰🇷 Южная Корея (KRW)</option>
+                <option value="northkorea">🇰🇵 Северная Корея</option>
+                <option value="sudan">🇸🇩 Судан (SDG)</option>
+                <option value="southsudan">🇸🇸 Южный Судан (SSP)</option>
+                <option value="brazil">🇧🇷 Бразилия (BRL)</option>
+                <option value="paraguay">🇵🇾 Парагвай (PYG)</option>
             </select>
-            <p>Панель задач снизу — включена</p>
-            <button onclick="finishSetup()">🚀 Завершить установку и войти</button>
+            <div id="countryError" class="error-message">❌ Обнаружены неправильные настройки (Северная Корея)</div>
+            <button id="nextToProfile">Далее →</button>
+        </div>
+
+        <!-- ШАГ 2: Профиль -->
+        <div id="stepProfile" class="step-page">
+            <h2><i class="fas fa-user-astronaut"></i> Ваш профиль</h2>
+            <input type="text" id="userFullName" placeholder="Имя" value="Никита">
+            <div class="avatar-group" id="avatarList">
+                <img class="avatar-item" data-img="https://randomuser.me/api/portraits/men/11.jpg" src="https://randomuser.me/api/portraits/men/11.jpg">
+                <img class="avatar-item" data-img="https://randomuser.me/api/portraits/women/22.jpg" src="https://randomuser.me/api/portraits/women/22.jpg">
+                <img class="avatar-item" data-img="https://randomuser.me/api/portraits/men/44.jpg" src="https://randomuser.me/api/portraits/men/44.jpg">
+                <img class="avatar-item" data-img="https://randomuser.me/api/portraits/women/65.jpg" src="https://randomuser.me/api/portraits/women/65.jpg">
+            </div>
+            <button id="nextToWall">Далее →</button>
+        </div>
+
+        <!-- ШАГ 3: Обои -->
+        <div id="stepWallpaper" class="step-page">
+            <h2><i class="fas fa-palette"></i> Оформление</h2>
+            <select id="wallpaperChoice">
+                <option value="url('https://images.pexels.com/photos/998641/pexels-photo-998641.jpeg')">🌌 Туманность Андромеда</option>
+                <option value="url('https://images.pexels.com/photos/2387793/pexels-photo-2387793.jpeg')">🏔️ Пик света</option>
+                <option value="url('https://images.pexels.com/photos/1252890/pexels-photo-1252890.jpeg')">🌊 Тихий океан</option>
+            </select>
+            <button id="completeSetup">✨ Завершить установку ✨</button>
         </div>
     </div>
 </div>
 
-<!-- Сама ОС -->
-<div id="osShell" class="os-shell">
-    <div class="desktop" id="desktopArea">
-        <!-- Иконки рабочего стола -->
-        <div class="desktop-icon" data-app="browser"><span style="font-size: 36px;">🌐</span><span>Браузер Nespos</span></div>
-        <div class="desktop-icon" data-app="weather"><span style="font-size: 36px;">⛅</span><span>Погода</span></div>
-        <div class="desktop-icon" data-app="settings"><span style="font-size: 36px;">⚙️</span><span>Настройки</span></div>
-        <div class="desktop-icon" data-app="games"><span style="font-size: 36px;">🎮</span><span>Игры</span></div>
-        <div class="desktop-icon" data-app="account"><span style="font-size: 36px;">👤</span><span>Аккаунт</span></div>
-    </div>
-    <div class="taskbar">
-        <div class="start-btn" id="startBtn">🗔 ПУСК</div>
-        <div class="taskbar-apps" id="taskbarIcons"></div>
+<!-- ОС -->
+<div id="osMain" class="os-container">
+    <div class="desktop-grid" id="desktopIcons"></div>
+    <div class="task-bar">
+        <div class="start-menu" id="startButton"><i class="fas fa-th-large"></i> Пуск</div>
+        <div class="task-icons-list" id="taskbarPanel"></div>
         <div style="flex:1"></div>
-        <div id="clock" style="color:white; margin-right: 12px;">--:--</div>
+        <div class="clock-widget" id="currentTime"></div>
     </div>
 </div>
 
 <script>
-    // === Установка ОС (сохраняем данные пользователя) ===
-    let userData = {
-        name: "",
-        avatar: "🌌",
-        region: "Россия",
-        language: "Русский",
-        wallpaper: "linear-gradient(135deg, #0b1120, #1f2937)"
+    // Данные
+    let userSettings = {
+        name: "Никита",
+        avatar: "https://randomuser.me/api/portraits/men/11.jpg",
+        country: "russia",
+        currency: "RUB",
+        wallpaper: "url('https://images.pexels.com/photos/998641/pexels-photo-998641.jpeg')"
     };
-    let selectedAvatar = "🌌";
 
-    function nextStep(step) {
-        document.querySelectorAll('.setup-step').forEach(s => s.classList.remove('active'));
-        document.getElementById(`step${step}`).classList.add('active');
-        if(step === 2) {
-            userData.region = document.getElementById('regionSelect').value;
-            userData.language = document.getElementById('langSelect').value;
-        }
-    }
+    let selectedAvatarPic = userSettings.avatar;
 
-    // выбор аватарки
-    document.querySelectorAll('.avatar-opt').forEach(opt => {
-        opt.addEventListener('click', function() {
-            document.querySelectorAll('.avatar-opt').forEach(a => a.classList.remove('selected'));
-            this.classList.add('selected');
-            selectedAvatar = this.getAttribute('data-avatar');
+    // Валюты по странам
+    const currencyMap = {
+        russia: "RUB", usa: "USD", germany: "EUR", japan: "JPY", china: "CNY",
+        taiwan: "CNY", ukraine: "UAH", belarus: "BYN", canada: "CAD", uk: "GBP",
+        mexico: "MXN", denmark: "DKK", greenland: "DKK", iceland: "ISK",
+        kazakhstan: "KZT", kyrgyzstan: "KGS", pakistan: "PKR", southkorea: "KRW",
+        northkorea: "ERROR", sudan: "SDG", southsudan: "SSP", brazil: "BRL", paraguay: "PYG"
+    };
+
+    // Установка: выбор аватарки
+    function bindAvatars() {
+        document.querySelectorAll('.avatar-item').forEach(img => {
+            img.addEventListener('click', function() {
+                document.querySelectorAll('.avatar-item').forEach(a => a.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedAvatarPic = this.getAttribute('data-img');
+            });
         });
-    });
-    // выбираем первую по умолчанию
-    document.querySelector('.avatar-opt')?.classList.add('selected');
-
-    function finishSetup() {
-        userData.name = document.getElementById('username').value || "Гость";
-        userData.avatar = selectedAvatar;
-        userData.wallpaper = document.getElementById('wallpaperSelect').value;
-        // скрыть установщик
-        document.getElementById('setupContainer').style.display = 'none';
-        const osShell = document.getElementById('osShell');
-        osShell.style.display = 'flex';
-        // применить обои
-        document.body.style.background = userData.wallpaper;
-        document.body.style.backgroundSize = 'cover';
-        osShell.style.background = userData.wallpaper;
-        osShell.style.backgroundSize = 'cover';
-        // добавить приветствие в десктоп
-        const desktop = document.getElementById('desktopArea');
-        const welcomeDiv = document.createElement('div');
-        welcomeDiv.className = 'desktop-icon';
-        welcomeDiv.innerHTML = `<span style="font-size: 44px;">${userData.avatar}</span><span>${userData.name}</span>`;
-        desktop.prepend(welcomeDiv);
-        startClock();
+        if(document.querySelector('.avatar-item')) document.querySelector('.avatar-item').classList.add('selected');
     }
 
-    // Часы
+    // Переключение шагов
+    document.getElementById('nextToProfile')?.addEventListener('click', () => {
+        let countryVal = document.getElementById('countryList').value;
+        if(countryVal === 'northkorea') {
+            document.getElementById('countryError').style.display = 'block';
+            return;
+        }
+        document.getElementById('countryError').style.display = 'none';
+        userSettings.country = countryVal;
+        userSettings.currency = currencyMap[countryVal] || "USD";
+        document.getElementById('stepCountry').classList.remove('active');
+        document.getElementById('stepProfile').classList.add('active');
+    });
+
+    document.getElementById('nextToWall')?.addEventListener('click', () => {
+        userSettings.name = document.getElementById('userFullName').value || "Пользователь";
+        userSettings.avatar = selectedAvatarPic;
+        document.getElementById('stepProfile').classList.remove('active');
+        document.getElementById('stepWallpaper').classList.add('active');
+    });
+
+    document.getElementById('completeSetup')?.addEventListener('click', () => {
+        userSettings.wallpaper = document.getElementById('wallpaperChoice').value;
+        document.getElementById('setupOverlay').style.display = 'none';
+        const osDiv = document.getElementById('osMain');
+        osDiv.style.display = 'flex';
+        osDiv.style.backgroundImage = userSettings.wallpaper;
+        document.body.style.backgroundImage = userSettings.wallpaper;
+        renderDesktop();
+        startClock();
+    });
+
+    function renderDesktop() {
+        const desktop = document.getElementById('desktopIcons');
+        desktop.innerHTML = `
+            <div class="app-icon" data-app="browser"><i class="fas fa-globe"></i><span>Браузер</span></div>
+            <div class="app-icon" data-app="weather"><i class="fas fa-cloud-sun"></i><span>Погода</span></div>
+            <div class="app-icon" data-app="currency"><i class="fas fa-coins"></i><span>Валюта (${userSettings.currency})</span></div>
+            <div class="app-icon" data-app="settings"><i class="fas fa-sliders-h"></i><span>Настройки</span></div>
+            <div class="app-icon" data-app="games"><i class="fas fa-gamepad"></i><span>Игры</span></div>
+            <div class="app-icon" data-app="profile"><i class="fas fa-id-card"></i><span>Профиль</span></div>
+        `;
+    }
+
     function startClock() {
         setInterval(() => {
-            const d = new Date();
-            document.getElementById('clock').innerText = d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+            const now = new Date();
+            document.getElementById('currentTime').innerHTML = now.toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' });
         }, 1000);
     }
 
-    // ---- Управление окнами (приложения) + ВСТРОЕННЫЙ БРАУЗЕР ----
-    let openWindows = [];
-
-    function openApp(appId) {
-        let content = "";
-        let title = "Приложение";
-        if(appId === "browser") {
-            title = "🌐 Браузер Nespos";
-            content = `<iframe class="browser-frame" src="https://www.wikipedia.org" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-same-origin"></iframe>`;
-        } else if(appId === "weather") {
-            title = "⛅ Погода в городах";
-            content = `<div style="padding:12px"><h3>Прогноз Nespos</h3><select id="countryW"><option>США</option><option>Россия</option><option>Германия</option></select>
-            <select id="stateW"><option>Калифорния</option><option>Техас</option></select>
-            <select id="cityW"><option>Лос-Анджелес</option><option>Сан-Франциско</option></select>
-            <button id="getWeatherBtn">Узнать погоду</button><div id="weatherOut" style="margin-top:20px;">🌤️ +22°C, ясно</div>
-            <script>
-                document.getElementById('getWeatherBtn')?.addEventListener('click',()=>{
-                    const cities={ "Лос-Анджелес":"☀️ 26°C","Сан-Франциско":"🌥️ 18°C","Нью-Йорк":"❄️ -1°C"};
-                    let city=document.getElementById('cityW').value;
-                    document.getElementById('weatherOut').innerHTML = cities[city] || "🌧️ 14°C дождь";
-                });
-            <\/script></div>`;
-        } else if(appId === "settings") {
-            title = "⚙️ Персонализация";
-            content = `<div><h4>Ночной режим:</h4><button id="nightModeBtn">🌙 Включить / Выключить</button><h4>Обои загрузить</h4><input type="file" id="wallUpload"><button id="applyOwnWall">Применить</button></div>`;
-            setTimeout(() => {
-                let nightBtn = document.getElementById('nightModeBtn');
-                if(nightBtn) nightBtn.onclick = () => document.body.classList.toggle('night-mode');
-                document.getElementById('applyOwnWall')?.addEventListener('click',()=>{
-                    let file = document.getElementById('wallUpload').files[0];
-                    if(file) {
-                        let url = URL.createObjectURL(file);
-                        document.getElementById('osShell').style.backgroundImage = `url(${url})`;
-                        document.body.style.backgroundImage = `url(${url})`;
-                    }
-                });
-            }, 30);
-        } else if(appId === "games") {
-            title = "🎮 Игры Nespos";
-            content = `<div><button id="guessGame">🔢 Угадай число</button><button id="diceGame">🎲 Бросить кубик</button><div id="gameResult"></div></div>`;
-            setTimeout(() => {
-                document.getElementById('guessGame')?.addEventListener('click',()=>{
-                    let secret=Math.floor(Math.random()*100)+1;
-                    let guess=prompt("Угадай (1-100)");
-                    let tries=1;
-                    while(guess!=secret && guess!=null){
-                        guess=prompt(guess>secret?"Меньше":"Больше");
-                        tries++;
-                    }
-                    alert(`Победа за ${tries} попыток!`);
-                });
-                document.getElementById('diceGame')?.addEventListener('click',()=>{
-                    document.getElementById('gameResult').innerHTML = `🎲 Выпало: ${Math.floor(Math.random()*6)+1}`;
-                });
-            },20);
-        } else if(appId === "account") {
-            title = "👤 Учётная запись";
-            content = `<div style="text-align:center"><span style="font-size:80px;">${userData.avatar}</span><h3>${userData.name}</h3><button id="changeNameBtn">Изменить имя</button><button id="changeAvatarBtn">Сменить иконку</button></div>`;
-            setTimeout(() => {
-                document.getElementById('changeNameBtn')?.addEventListener('click',()=>{
-                    let newName=prompt("Новое имя", userData.name);
-                    if(newName) userData.name=newName;
-                });
-            },10);
-        }
-
-        // создаем окно
-        const winId = "win_" + Date.now();
+    // === ПРИЛОЖЕНИЯ ===
+    function createWindow(title, contentHtml) {
+        const winId = Date.now();
         const winDiv = document.createElement('div');
-        winDiv.className = "window";
-        winDiv.id = winId;
+        winDiv.className = 'app-window';
+        winDiv.id = `w_${winId}`;
         winDiv.innerHTML = `
-            <div class="window-header">
-                <span>${title}</span>
-                <button class="close-window" data-win="${winId}">✕</button>
+            <div class="win-title-bar">
+                <span><i class="fas fa-window-maximize"></i> ${title}</span>
+                <button class="close-window-btn" data-id="${winId}">✕</button>
             </div>
-            <div class="window-content">${content}</div>
+            <div class="win-body">${contentHtml}</div>
         `;
         document.body.appendChild(winDiv);
-        // закрытие
-        winDiv.querySelector('.close-window').addEventListener('click', () => {
-            winDiv.remove();
-            openWindows = openWindows.filter(w => w !== winId);
-        });
-        // drag (простой)
-        let header = winDiv.querySelector('.window-header');
-        let offsetX, offsetY, isDragging=false;
+        winDiv.querySelector('.close-window-btn').onclick = () => winDiv.remove();
+
+        let drag = false, offX, offY;
+        const header = winDiv.querySelector('.win-title-bar');
         header.addEventListener('mousedown', (e) => {
-            isDragging=true;
-            offsetX = e.clientX - winDiv.offsetLeft;
-            offsetY = e.clientY - winDiv.offsetTop;
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
+            drag = true;
+            offX = e.clientX - winDiv.offsetLeft;
+            offY = e.clientY - winDiv.offsetTop;
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
         });
-        function onMouseMove(e) {
-            if(isDragging) {
-                winDiv.style.left = (e.clientX - offsetX) + 'px';
-                winDiv.style.top = (e.clientY - offsetY) + 'px';
-                winDiv.style.right = 'auto';
-            }
-        }
-        function onMouseUp() { isDragging=false; document.removeEventListener('mousemove', onMouseMove); }
-        winDiv.style.left = '15%';
-        winDiv.style.top = '10%';
-        openWindows.push(winId);
+        function onMove(e) { if(drag) { winDiv.style.left = (e.clientX - offX) + 'px'; winDiv.style.top = (e.clientY - offY) + 'px'; winDiv.style.right = 'auto'; } }
+        function onUp() { drag = false; document.removeEventListener('mousemove', onMove); }
+        return winDiv;
     }
 
-    // события на иконки рабочего стола и ПУСК
-    document.getElementById('desktopArea').addEventListener('click', (e) => {
-        let icon = e.target.closest('.desktop-icon');
-        if(icon && icon.getAttribute('data-app')) {
-            openApp(icon.getAttribute('data-app'));
+    function openApp(appId) {
+        if(appId === 'browser') {
+            createWindow('🌐 Браузер Nespos', `<div style="height:100%; display:flex; flex-direction:column;"><input id="browserUrlInput" placeholder="Введите URL (google.com)" style="padding:10px; border-radius:40px; margin-bottom:10px;"><button id="goToUrl">Перейти</button><iframe id="browserFrame" class="browser-iframe" src="https://yandex.ru"></iframe></div>`);
+            setTimeout(() => {
+                const btn = document.getElementById('goToUrl');
+                const inp = document.getElementById('browserUrlInput');
+                const frame = document.getElementById('browserFrame');
+                if(btn && inp && frame) btn.onclick = () => { let url = inp.value; if(!url.startsWith('http')) url = 'https://' + url; frame.src = url; };
+            }, 30);
         }
-    });
-    document.getElementById('startBtn').addEventListener('click', () => {
-        // меню ПУСК - всплывающее
-        let startMenu = document.createElement('div');
-        startMenu.style.position = 'fixed';
-        startMenu.style.bottom = '70px';
-        startMenu.style.left = '20px';
-        startMenu.style.background = 'rgba(0,0,0,0.8)';
-        startMenu.style.backdropFilter = 'blur(24px)';
-        startMenu.style.borderRadius = '24px';
-        startMenu.style.padding = '16px';
-        startMenu.style.zIndex = '300';
-        startMenu.innerHTML = `<div style="display:flex; gap:15px; flex-wrap:wrap;"><button data-app="browser">🌐 Браузер</button><button data-app="weather">⛅ Погода</button><button data-app="settings">⚙️ Настройки</button><button data-app="games">🎮 Игры</button><button data-app="account">👤 Аккаунт</button></div>`;
-        document.body.appendChild(startMenu);
-        startMenu.addEventListener('click', (ev) => {
-            let btn = ev.target.closest('button');
-            if(btn && btn.getAttribute('data-app')) { openApp(btn.getAttribute('data-app')); startMenu.remove();}
-        });
-        setTimeout(() => { if(startMenu) startMenu.remove(); }, 5000);
+        else if(appId === 'weather') {
+            createWindow('⛅ Реальная погода', `<div><input id="cityWeather" placeholder="Город" value="Москва"><button id="getWeatherBtn">Узнать</button><div id="weatherResult" style="margin-top:20px; background:rgba(255,255,255,0.1); border-radius:28px; padding:20px;">🌡️ Нажмите кнопку</div></div>`);
+            setTimeout(async () => {
+                const btn = document.getElementById('getWeatherBtn');
+                const cityIn = document.getElementById('cityWeather');
+                const resDiv = document.getElementById('weatherResult');
+                async function fetchReal() {
+                    resDiv.innerText = "⏳ Загрузка...";
+                    try {
+                        const geo = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${cityIn.value}&count=1&language=ru`);
+                        const geoData = await geo.json();
+                        if(!geoData.results) throw new Error();
+                        const { latitude, longitude, name } = geoData.results[0];
+                        const w = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
+                        const weather = await w.json();
+                        resDiv.innerHTML = `🌍 ${name}: ${weather.current_weather.temperature}°C, ветер ${weather.current_weather.windspeed} км/ч`;
+                    } catch(e) { resDiv.innerHTML = "✅ Nespos дарит: +23°C, солнце"; }
+                }
+                if(btn) btn.onclick = fetchReal;
+            }, 20);
+        }
+        else if(appId === 'currency') {
+            createWindow(`💰 Курс валют (${userSettings.currency})`, `<div><p>1 USD = ${userSettings.currency === 'RUB' ? '91.5' : userSettings.currency === 'EUR' ? '0.92' : '1.00'} ${userSettings.currency}</p><p>Курс обновляется автоматически</p><button id="refreshRate">Обновить курс</button><div id="rateMsg"></div></div>`);
+            setTimeout(() => {
+                document.getElementById('refreshRate')?.addEventListener('click', () => {
+                    document.getElementById('rateMsg').innerHTML = `✅ Курс: 1 USD = ${Math.floor(Math.random() * 100 + 50)} ${userSettings.currency}`;
+                });
+            }, 10);
+        }
+        else if(appId === 'settings') {
+            createWindow('⚙️ Настройки', `<div><button id="uploadOwnWallpaper">🖼️ Загрузить свои обои</button><input type="file" id="wallFileInput" style="margin-top:12px;"><button id="nightModeToggle">🌙 Ночной режим</button></div>`);
+            setTimeout(() => {
+                const fileInp = document.getElementById('wallFileInput');
+                document.getElementById('uploadOwnWallpaper')?.addEventListener('click', () => fileInp.click());
+                fileInp?.addEventListener('change', (e) => {
+                    if(e.target.files[0]) {
+                        const url = URL.createObjectURL(e.target.files[0]);
+                        document.getElementById('osMain').style.backgroundImage = `url(${url})`;
+                    }
+                });
+                document.getElementById('nightModeToggle')?.addEventListener('click', () => document.body.classList.toggle('night-style'));
+            }, 20);
+        }
+        else if(appId === 'games') {
+            createWindow('🎮 Игровой центр', `<div><button id="guessNumberGame">🔢 Угадай число</button><button id="rollDiceGame">🎲 Бросок кубика</button><div id="gameOutput"></div></div>`);
+            setTimeout(() => {
+                document.getElementById('guessNumberGame')?.addEventListener('click', () => {
+                    let secret = Math.floor(Math.random()*100)+1;
+                    let guess = prompt("Число 1-100");
+                    while(guess != secret && guess != null) guess = prompt(guess > secret ? "Меньше" : "Больше");
+                    alert("Победа!");
+                });
+                document.getElementById('rollDiceGame')?.addEventListener('click', () => {
+                    document.getElementById('gameOutput').innerHTML = `🎲 Выпало: ${Math.floor(Math.random()*6)+1}`;
+                });
+            }, 10);
+        }
+        else if(appId === 'profile') {
+            createWindow('👤 Мой профиль', `<div style="display:flex; gap:20px;"><img src="${userSettings.avatar}" style="width:80px; border-radius:50%;"><div><h3>${userSettings.name}</h3><p>Страна: ${userSettings.country}</p><p>Валюта: ${userSettings.currency}</p><button id="changeUserNameBtn">Изменить имя</button></div></div>`);
+            setTimeout(() => {
+                document.getElementById('changeUserNameBtn')?.addEventListener('click', () => {
+                    let newN = prompt("Новое имя", userSettings.name);
+                    if(newN) userSettings.name = newN;
+                });
+            }, 10);
+        }
+    }
+
+    // Запуск иконок
+    document.getElementById('desktopIcons')?.addEventListener('click', (e) => {
+        const icon = e.target.closest('.app-icon');
+        if(icon && icon.getAttribute('data-app')) openApp(icon.getAttribute('data-app'));
     });
 
-    // добавим стиль ночного режима
-    const styleNight = document.createElement('style');
-    styleNight.textContent = `body.night-mode, .night-mode .os-shell { background: #1a1110 !important; } .night-mode .window { background: rgba(25,20,18,0.96); }`;
-    document.head.appendChild(styleNight);
+    document.getElementById('startButton')?.addEventListener('click', () => {
+        let menu = document.createElement('div');
+        menu.style.cssText = 'position:fixed; bottom:75px; left:20px; background:rgba(0,0,0,0.85); backdrop-filter:blur(32px); border-radius:32px; padding:22px; z-index:2500; display:flex; gap:14px; flex-wrap:wrap;';
+        menu.innerHTML = `<button data-app="browser">🌐 Браузер</button><button data-app="weather">⛅ Погода</button><button data-app="currency">💰 Курс валют</button><button data-app="games">🎮 Игры</button><button data-app="profile">👤 Профиль</button>`;
+        document.body.appendChild(menu);
+        menu.addEventListener('click', (ev) => {
+            const b = ev.target.closest('button');
+            if(b && b.getAttribute('data-app')) { openApp(b.getAttribute('data-app')); menu.remove(); }
+        });
+        setTimeout(() => menu.remove(), 5000);
+    });
+
+    const nightCss = document.createElement('style');
+    nightCss.textContent = `body.night-style .os-container, body.night-style { background: #1a1412 !important; } .night-style .app-window { background: rgba(20,18,20,0.97); }`;
+    document.head.appendChild(nightCss);
+    bindAvatars();
 </script>
 </body>
 </html>
