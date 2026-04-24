@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Nespos OS — Ваша новая вселенная</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+            background: #0a0c15;
+            overflow: hidden;
+            height: 100vh;
+            transition: background 0.3s ease;
+        }
+
+        /* Ночной режим (тёплые тёмные тона) */
+        body.night {
+            background: #1a1612;
+        }
+
+        body.night .sidebar {
+            background: rgba(25, 20, 18, 0.95);
+            backdrop-filter: blur(16px);
+            border-right-color: #3e2c24;
+        }
+
+        body.night .app-window {
+            background: rgba(28, 22, 20, 0.85);
+            backdrop-filter: blur(18px);
+            border-color: #4a372e;
+        }
+
+        /* Главный контейнер */
+        .os-container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* Сайдбар — с плавными цветами и градиентом */
+        .sidebar {
+            width: 280px;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            padding: 24px 16px;
+            gap: 32px;
+            transition: background 0.4s ease, border-color 0.3s;
+            z-index: 20;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.05);
+        }
+
+        /* Градиентная версия сайдбара (динамический) */
+        .sidebar.gradient {
+            background: linear-gradient(135deg, #ffe6f0, #d4e0ff) !important;
+        }
+        body.night .sidebar.gradient {
+            background: linear-gradient(135deg, #3b2a22, #2c241f) !important;
+        }
+
+        .logo {
+            font-size: 26px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #2b6ef0, #c241ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-align: center;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .nav-btn {
+            background: rgba(0,0,0,0.04);
+            border: none;
+            padding: 12px 18px;
+            border-radius: 24px;
+            font-size: 16px;
+            font-weight: 500;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #111;
+        }
+        body.night .nav-btn {
+            color: #f0e6df;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .nav-btn:hover {
+            background: rgba(0,0,0,0.1);
+            transform: translateX(4px);
+        }
+        body.night .nav-btn:hover {
+            background: rgba(255,255,240,0.15);
+        }
+
+        /* Область приложений */
+        .main-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .app-window {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 28px;
+            margin-bottom: 24px;
+            transition: all 0.2s;
+            color: #1e1e2a;
+        }
+        body.night .app-window {
+            color: #f5ede8;
+        }
+
+        h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        input, select, button {
+            padding: 10px 16px;
+            border-radius: 32px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            background: white;
+            margin: 5px 5px 0 0;
+        }
+        body.night input, body.night select, body.night button {
+            background: #2e2a27;
+            color: white;
+            border-color: #5f4e44;
+        }
+        button {
+            cursor: pointer;
+            background: #2b6ef0;
+            color: white;
+            border: none;
+            font-weight: 600;
+        }
+        button.secondary {
+            background: #8a6e4b;
+        }
+
+        .grid-cities {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        .city-card {
+            background: rgba(0,0,0,0.05);
+            padding: 10px 18px;
+            border-radius: 40px;
+            cursor: pointer;
+        }
+        .weather-info {
+            margin-top: 20px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 28px;
+            padding: 20px;
+        }
+
+        /* настройки */
+        .setting-item {
+            margin: 20px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .toggle-switch {
+            width: 44px;
+            height: 24px;
+            background: gray;
+            border-radius: 30px;
+            display: inline-block;
+            position: relative;
+            cursor: pointer;
+        }
+        .toggle-switch.active {
+            background: #2b6ef0;
+        }
+        .toggle-switch::after {
+            content: '';
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 3px;
+            transition: 0.2s;
+        }
+        .toggle-switch.active::after {
+            left: 21px;
+        }
+
+        .account-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: #ccc;
+            display: inline-block;
+            object-fit: cover;
+        }
+        hr {
+            margin: 20px 0;
+        }
+        @media (max-width: 650px) {
+            .sidebar { width: 80px; padding: 16px 8px; }
+            .nav-btn span:not(.emoji) { display: none; }
+            .nav-btn .emoji { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+<div class="os-container">
+    <div class="sidebar" id="sidebar">
+        <div class="logo">🌌 NESPOS</div>
+        <div class="nav-buttons">
+            <div class="nav-btn" data-app="weather">🌤️ Погода</div>
+            <div class="nav-btn" data-app="games">🎮 Игры</div>
+            <div class="nav-btn" data-app="settings">⚙️ Настройки</div>
+            <div class="nav-btn" data-app="accounts">👤 Учётные записи</div>
+            <div class="nav-btn" data-app="security">🔒 Защита</div>
+            <div class="nav-btn" data-app="subscription">💎 Подписка</div>
+        </div>
+    </div>
+    <div class="main-area" id="mainApp"></div>
+</div>
+
+<script>
+    // -------------------  Пользовательские данные --------------------
+    let settings = {
+        nightMode: false,
+        sidebarColor: "#ffffff",
+        sidebarGradient: false,
+        gradientColors: ["#ffe6f0", "#d4e0ff"], // для градиента
+        wallpaper: null, // url или null
+        sendRealIP: false,      // отправлять реальный ip?
+        malwareProtection: false, // только по ключу
+        allowLocation: false
+    };
+
+    let account = {
+        name: "Астронавт",
+        avatar: null,
+        photo: null
+    };
+
+    let activated = false;
+    let productKey = "";
+
+    // легитимные ключи
+    const validKeys = ["85f-f72-g2g", "294-paq-l1k", "93k-ki1-l2a", "36t-tb4-91f", "os5-2sc-fe4", "poi-87y-kug", "ty7-hg1-pl9"];
+
+    // -----  Данные для погоды (США -> Штаты -> Города) ----
+    const weatherDB = {
+        "США": {
+            "Калифорния": ["Лос-Анджелес", "Сан-Франциско", "Сан-Диего"],
+            "Техас": ["Хьюстон", "Остин", "Даллас"],
+            "Нью-Йорк": ["Нью-Йорк", "Буффало", "Рочестер"],
+            "Флорида": ["Майами", "Орландо", "Тампа"]
+        },
+        "Канада": {
+            "Онтарио": ["Торонто", "Оттава"],
+            "Квебек": ["Монреаль", "Квебек-Сити"]
+        },
+        "Великобритания": {
+            "Англия": ["Лондон", "Манчестер"],
+            "Шотландия": ["Эдинбург", "Глазго"]
+        },
+        "Германия": {
+            "Бавария": ["Мюнхен", "Нюрнберг"],
+            "Берлин": ["Берлин"]
+        }
+    };
+
+    let currentCountry = "США";
+    let currentState = "Калифорния";
+    let currentCity = "Лос-Анджелес";
+    let lastWeather = null;
+
+    // симуляция погоды
+    function getWeather(city) {
+        const conditions = ["☀️ Солнечно", "🌥️ Облачно", "🌧️ Дождь", "⛈️ Гроза", "❄️ Снег", "🌬️ Ветрено"];
+        const temps = [12, 18, 22, 26, 30, 5, -2];
+        const cond = conditions[Math.floor(Math.random() * conditions.length)];
+        const temp = temps[Math.floor(Math.random() * temps.length)];
+        return { condition: cond, temp: temp, city: city };
+    }
+
+    // -----  Приложение Погода с иерархией ----
+    function renderWeatherApp() {
+        let html = `<div class="app-window"><h2>🌍 Nespos Климат</h2>`;
+        html += `<select id="countrySelect">${Object.keys(weatherDB).map(c => `<option ${c===currentCountry ? 'selected' : ''}>${c}</option>`).join('')}</select>`;
+        html += `<select id="stateSelect"></select>`;
+        html += `<select id="citySelect"></select>`;
+        html += `<button id="refreshWeatherBtn">Показать погоду</button>`;
+        html += `<div id="weatherResult" class="weather-info"></div></div>`;
+
+        const container = document.getElementById('mainApp');
+        container.innerHTML = html;
+
+        function updateStates() {
+            const country = document.getElementById('countrySelect').value;
+            const states = Object.keys(weatherDB[country] || {});
+            const stateSel = document.getElementById('stateSelect');
+            stateSel.innerHTML = states.map(s => `<option ${s===currentState && country===currentCountry ? 'selected' : ''}>${s}</option>`).join('');
+            updateCities();
+        }
+        function updateCities() {
+            const country = document.getElementById('countrySelect').value;
+            const state = document.getElementById('stateSelect').value;
+            const cities = weatherDB[country]?.[state] || [];
+            const citySel = document.getElementById('citySelect');
+            citySel.innerHTML = cities.map(c => `<option ${c===currentCity ? 'selected' : ''}>${c}</option>`).join('');
+        }
+        document.getElementById('countrySelect').addEventListener('change', () => { currentCountry = document.getElementById('countrySelect').value; updateStates(); });
+        document.getElementById('stateSelect').addEventListener('change', () => { currentState = document.getElementById('stateSelect').value; updateCities(); });
+        document.getElementById('citySelect').addEventListener('change', (e) => { currentCity = e.target.value; });
+        document.getElementById('refreshWeatherBtn').addEventListener('click', () => {
+            const city = document.getElementById('citySelect').value;
+            const w = getWeather(city);
+            lastWeather = w;
+            document.getElementById('weatherResult').innerHTML = `<div style="font-size: 48px;">${w.condition}</div><div>${w.city}: ${w.temp}°C</div>`;
+        });
+        updateStates();
+        if(lastWeather) document.getElementById('weatherResult').innerHTML = `<div>${lastWeather.condition} ${lastWeather.temp}°C</div>`;
+    }
+
+    // ------------------- ИГРЫ --------------------
+    function renderGames() {
+        const html = `<div class="app-window">
+            <h2>🎮 Retro Nespos Games</h2>
+            <div style="display:flex; gap:15px; flex-wrap:wrap;">
+                <div><button id="gameSnake">🐍 Змейка (консольная версия)</button></div>
+                <div><button id="gameGuess">🔢 Угадай число</button></div>
+                <div><button id="gameDice">🎲 Кости</button></div>
+                <div><button id="gameMines">💣 Сапёр (текст)</button></div>
+            </div>
+            <div id="gameArea" style="margin-top:24px; background: rgba(0,0,0,0.1); border-radius: 28px; padding: 20px; font-family: monospace;"></div>
+        </div>`;
+        document.getElementById('mainApp').innerHTML = html;
+
+        document.getElementById('gameSnake').onclick = () => {
+            document.getElementById('gameArea').innerHTML = `<pre>🐍 Змейка в разработке... пока играй в "Угадай число"!</pre>`;
+        };
+        document.getElementById('gameGuess').onclick = () => {
+            let secret = Math.floor(Math.random()*100)+1;
+            let guess = prompt("Угадай число (1-100)");
+            let tries=1;
+            while(guess != secret && guess !== null){
+                guess = prompt( (guess>secret? "Меньше":"Больше") + " Попробуй снова!");
+                tries++;
+                if(guess == secret) alert(`🎉 Победа за ${tries} попыток!`);
+            }
+            if(guess==secret) alert("Красавчик!");
+            document.getElementById('gameArea').innerHTML = `<div>Игра окончена. Было загадано ${secret}</div>`;
+        };
+        document.getElementById('gameDice').onclick = () => {
+            let r = Math.floor(Math.random()*6)+1;
+            document.getElementById('gameArea').innerHTML = `<div>🎲 Выпало: ${r}</div>`;
+        };
+        document.getElementById('gameMines').onclick = () => {
+            document.getElementById('gameArea').innerHTML = `<div>💣 Мины: нажми F5 для перезапуска демо (поле 3x3). <button id="demoMine">открыть клетку</button></div>`;
+            let demoDiv = document.getElementById('gameArea');
+            let btn = document.createElement('button');
+            btn.innerText = "Кликни мину";
+            btn.onclick = ()=> alert("💥 БАХ! Проиграл.");
+            demoDiv.appendChild(btn);
+        };
+    }
+
+    // ----- НАСТРОЙКИ полноценные -----
+    function renderSettings() {
+        const gradState = settings.sidebarGradient ? "checked" : "";
+        const html = `<div class="app-window">
+            <h2>⚙️ Персонализация Nespos</h2>
+            <div class="setting-item"><span>🌙 Ночной вид (тёплые тёмные цвета)</span><div class="toggle-switch ${settings.nightMode ? 'active' : ''}" id="nightToggle"></div></div>
+            <div class="setting-item"><span>🎨 Цвет сайдбара</span><input type="color" id="sidebarColorPicker" value="${settings.sidebarColor}"></div>
+            <div class="setting-item"><span>🌈 Градиент сайдбара (двойник-эффект)</span><div class="toggle-switch ${settings.sidebarGradient ? 'active' : ''}" id="gradientToggle"></div></div>
+            <div class="setting-item" id="gradientColorsPanel" style="${settings.sidebarGradient ? 'display:flex' : 'display:none'}"><span>Цвета градиента: </span><input type="color" id="grad1" value="${settings.gradientColors[0]}"><input type="color" id="grad2" value="${settings.gradientColors[1]}"><button id="applyGrad">Применить</button></div>
+            <div class="setting-item"><span>🖼️ Обои (автосжатие)</span><input type="file" id="wallpaperUpload" accept="image/*"><button id="resetWall">Сброс</button></div>
+        </div>`;
+        document.getElementById('mainApp').innerHTML = html;
+
+        document.getElementById('nightToggle').onclick = (e) => {
+            settings.nightMode = !settings.nightMode;
+            document.body.classList.toggle('night', settings.nightMode);
+            renderSettings(); 
+        };
+        document.getElementById('sidebarColorPicker').onchange = (e) => {
+            settings.sidebarColor = e.target.value;
+            if(!settings.sidebarGradient) document.getElementById('sidebar').style.background = settings.sidebarColor;
+        };
+        document.getElementById('gradientToggle').onclick = () => {
+            settings.sidebarGradient = !settings.sidebarGradient;
+            applySidebarGradient();
+            renderSettings();
+        };
+        document.getElementById('applyGrad')?.addEventListener('click',()=>{
+            settings.gradientColors[0] = document.getElementById('grad1').value;
+            settings.gradientColors[1] = document.getElementById('grad2').value;
+            applySidebarGradient();
+        });
+        document.getElementById('wallpaperUpload').onchange = (e) => {
+            let file = e.target.files[0];
+            if (file) {
+                let url = URL.createObjectURL(file);
+                document.body.style.backgroundImage = `url(${url})`;
+                document.body.style.backgroundSize = 'cover';
+                settings.wallpaper = url;
+            }
+        };
+        document.getElementById('resetWall').onclick = () => {
+            document.body.style.backgroundImage = '';
+            settings.wallpaper = null;
+        };
+        function applySidebarGradient() {
+            const sidebar = document.getElementById('sidebar');
+            if(settings.sidebarGradient) {
+                sidebar.style.background = `linear-gradient(135deg, ${settings.gradientColors[0]}, ${settings.gradientColors[1]})`;
+                sidebar.classList.add('gradient');
+            } else {
+                sidebar.style.background = settings.sidebarColor;
+                sidebar.classList.remove('gradient');
+            }
+        }
+        applySidebarGradient();
+    }
+
+    // --- Учетные записи + фото ---
+    function renderAccounts() {
+        const html = `<div class="app-window">
+            <h2>👤 Учётная запись</h2>
+            <div style="display:flex; gap:20px; align-items:center;">
+                <img id="avatarImg" class="account-avatar" src="${account.avatar || 'https://via.placeholder.com/64'}">
+                <div><strong id="accName">${account.name}</strong><br><button id="changeNameBtn">Изменить имя</button><br><button id="uploadPhotoBtn">Загрузить фото</button></div>
+            </div>
+            <hr>
+            <div>✨ Фотография профиля появится после загрузки ✨</div>
+        </div>`;
+        document.getElementById('mainApp').innerHTML = html;
+        document.getElementById('changeNameBtn').onclick = () => {
+            let newName = prompt("Новое имя:", account.name);
+            if(newName) { account.name = newName; document.getElementById('accName').innerText = newName; }
+        };
+        document.getElementById('uploadPhotoBtn').onclick = () => {
+            let input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = (e) => {
+                let file = e.target.files[0];
+                if(file){
+                    let url = URL.createObjectURL(file);
+                    account.avatar = url;
+                    document.getElementById('avatarImg').src = url;
+                }
+            };
+            input.click();
+        };
+    }
+
+    // --- Защита ---
+    function renderSecurity() {
+        const html = `<div class="app-window"><h2>🔒 Защита & Конфиденциальность</h2>
+            <div class="setting-item"><span>📡 Отправлять реальный IP (вместо домена ОС)</span><div class="toggle-switch ${settings.sendRealIP ? 'active' : ''}" id="ipToggle"></div></div>
+            <div class="setting-item"><span>🛡️ Защита от вредоносных сайтов (требует ключа продукта)</span><div class="toggle-switch ${settings.malwareProtection ? 'active' : ''}" id="malToggle"></div> <span style="font-size:12px">${activated ? "Активировано" : "Неактивно (нужен ключ)"}</span></div>
+            <div class="setting-item"><span>📍 Разрешить сайтам доступ к адресу</span><div class="toggle-switch ${settings.allowLocation ? 'active' : ''}" id="locToggle"></div></div>
+        </div>`;
+        document.getElementById('mainApp').innerHTML = html;
+        document.getElementById('ipToggle').onclick = () => { settings.sendRealIP = !settings.sendRealIP; renderSecurity(); };
+        document.getElementById('locToggle').onclick = () => { settings.allowLocation = !settings.allowLocation; renderSecurity(); };
+        document.getElementById('malToggle').onclick = () => { if(activated) settings.malwareProtection = !settings.malwareProtection; else alert("Активируйте подписку ключом продукции!"); renderSecurity(); };
+    }
+
+    // Подписка и ключ
+    function renderSubscription() {
+        const html = `<div class="app-window"><h2>💎 Активация Nespos Pro</h2>
+            <p>Введите ключ в формате xxx-xxx-xxx</p>
+            <input type="text" id="keyInput" placeholder="85f-f72-g2g" maxlength="11" style="text-transform:lowercase">
+            <button id="activateBtn">Активировать</button>
+            <div id="keyStatus">${activated ? "✅ ОС активирована. Защита от вредоносных сайтов доступна" : "❌ Не активировано"}</div>
+            <hr><div>Доступные ключи: 85f-f72-g2g, 294-paq-l1k, 93k-ki1-l2a ... и другие</div>
+        </div>`;
+        document.getElementById('mainApp').innerHTML = html;
+        const inp = document.getElementById('keyInput');
+        inp.addEventListener('input', (e) => {
+            let val = e.target.value.replace(/[^a-z0-9]/g, '').toLowerCase();
+            let formatted = val.match(/.{1,3}/g)?.join('-') || '';
+            inp.value = formatted.slice(0,11);
+        });
+        document.getElementById('activateBtn').onclick = () => {
+            let key = inp.value.toLowerCase();
+            if(validKeys.includes(key)){
+                activated = true;
+                productKey = key;
+                document.getElementById('keyStatus').innerHTML = "✅ Активация успешна! Включите защиту от вредоносных сайтов в разделе Защита.";
+            } else { alert("Неверный ключ"); }
+        };
+    }
+
+    // Основной роутер
+    function loadApp(appName) {
+        if(appName === 'weather') renderWeatherApp();
+        else if(appName === 'games') renderGames();
+        else if(appName === 'settings') renderSettings();
+        else if(appName === 'accounts') renderAccounts();
+        else if(appName === 'security') renderSecurity();
+        else if(appName === 'subscription') renderSubscription();
+        else renderWeatherApp();
+    }
+
+    // инициализируем кнопки
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const app = btn.getAttribute('data-app');
+            loadApp(app);
+        });
+    });
+    // загружаем погоду по умолчанию
+    loadApp('weather');
+    // применяем ночной режим, если сохранён
+    if(settings.nightMode) document.body.classList.add('night');
+</script>
+</body>
+</html>
