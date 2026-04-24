@@ -3,193 +3,199 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Nespos OS — Операционная система будущего</title>
+    <title>Nespos OS — Элегантная веб-операционная система</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+            font-family: 'Segoe UI', 'Inter', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
         }
 
         body {
             height: 100vh;
             overflow: hidden;
-            background: #0a0c18;
+            background: #0a0c14;
         }
 
-        /* ============ УСТАНОВЩИК ============ */
-        .setup-screen {
+        /* ========== УСТАНОВЩИК ========== */
+        .installer-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at 30% 20%, #0e1020, #020308);
+            background: radial-gradient(circle at 25% 20%, #0e1022, #020308);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 3000;
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(3px);
         }
 
-        .setup-card {
-            background: rgba(22, 25, 40, 0.9);
+        .installer-card {
+            background: rgba(24, 28, 44, 0.92);
             backdrop-filter: blur(48px);
             border-radius: 56px;
-            width: 560px;
-            max-width: 90vw;
+            width: 540px;
+            max-width: 88vw;
             padding: 44px;
-            border: 1px solid rgba(255,255,255,0.2);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+            border: 1px solid rgba(255,255,255,0.18);
+            box-shadow: 0 40px 70px rgba(0,0,0,0.5);
             color: white;
         }
 
-        .step-page {
+        .step-container {
             display: none;
         }
 
-        .step-page.active {
+        .step-container.active {
             display: block;
-            animation: slideUp 0.35s ease;
+            animation: fadeInUp 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
         }
 
-        @keyframes slideUp {
+        @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(12px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .setup-card h2 {
+        .installer-card h2 {
             font-size: 34px;
             font-weight: 700;
-            margin-bottom: 20px;
-            background: linear-gradient(135deg, #ffffff, #7aa2ff);
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #ffffff, #8b5cf6);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
         }
 
-        .setup-card select, .setup-card input {
+        .installer-card select, .installer-card input {
             width: 100%;
             padding: 14px 18px;
             background: rgba(0,0,0,0.5);
             border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 40px;
+            border-radius: 44px;
             color: white;
             margin: 12px 0;
             font-size: 15px;
+            transition: 0.2s;
         }
 
-        .avatar-group {
+        .avatar-picker {
             display: flex;
-            gap: 18px;
+            gap: 16px;
             justify-content: center;
             margin: 24px 0;
             flex-wrap: wrap;
         }
 
-        .avatar-item {
-            width: 75px;
-            height: 75px;
+        .avatar-option {
+            width: 72px;
+            height: 72px;
             border-radius: 50%;
             cursor: pointer;
             border: 3px solid transparent;
-            transition: 0.2s;
+            transition: all 0.2s;
             object-fit: cover;
         }
 
-        .avatar-item.selected {
-            border-color: #3b82f6;
+        .avatar-option.selected {
+            border-color: #8b5cf6;
             transform: scale(1.05);
-            box-shadow: 0 0 18px #3b82f6;
+            box-shadow: 0 0 20px #8b5cf6;
         }
 
         button {
-            background: #3b82f6;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
             border: none;
-            padding: 12px 30px;
+            padding: 12px 32px;
             border-radius: 44px;
-            font-weight: 700;
+            font-weight: 600;
             font-size: 16px;
             color: white;
             cursor: pointer;
-            transition: 0.2s;
+            transition: all 0.2s;
         }
 
         button:hover {
-            background: #2563eb;
             transform: scale(1.02);
+            filter: brightness(1.05);
         }
 
-        .error-message {
-            color: #ff6b6b;
+        .error-msg {
+            color: #f97316;
             font-size: 13px;
             margin-top: 8px;
             display: none;
         }
 
-        /* ============ ОС ============ */
-        .os-container {
+        /* ========== ОС ========== */
+        .os-root {
             display: none;
             width: 100%;
             height: 100vh;
             flex-direction: column;
             background-size: cover;
             background-position: center;
+            transition: background-image 0.3s ease;
         }
 
-        .desktop-grid {
+        .desktop-area {
             flex: 1;
-            padding: 24px;
+            padding: 28px;
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(115px, 125px));
-            gap: 22px;
+            grid-template-columns: repeat(auto-fill, minmax(118px, 128px));
+            gap: 24px;
             align-content: start;
             overflow-y: auto;
         }
 
-        .app-icon {
+        .app-shortcut {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(18px);
-            padding: 14px 8px;
-            border-radius: 24px;
+            gap: 10px;
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(20px);
+            padding: 16px 8px;
+            border-radius: 28px;
             cursor: pointer;
-            transition: all 0.25s;
+            transition: all 0.25s ease;
             color: white;
-            border: 1px solid rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.12);
         }
 
-        .app-icon i {
-            font-size: 42px;
+        .app-shortcut i {
+            font-size: 44px;
         }
 
-        .app-icon span {
+        .app-shortcut span {
             font-size: 13px;
             font-weight: 500;
         }
 
-        .app-icon:hover {
-            background: rgba(255,255,255,0.25);
+        .app-shortcut:hover {
+            background: rgba(255,255,255,0.22);
             transform: translateY(-6px);
+            border-color: rgba(255,255,255,0.3);
         }
 
-        .task-bar {
+        /* Панель задач */
+        .taskbar-panel {
             background: rgba(16, 18, 28, 0.92);
-            backdrop-filter: blur(28px);
-            border-top: 1px solid rgba(255,255,255,0.12);
-            height: 62px;
+            backdrop-filter: blur(32px);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            height: 64px;
             display: flex;
             align-items: center;
             padding: 0 24px;
             gap: 20px;
+            position: relative;
+            z-index: 100;
         }
 
-        .start-menu {
+        .start-button {
             background: linear-gradient(135deg, #3b82f6, #a855f7);
             border-radius: 36px;
             padding: 8px 22px;
@@ -198,66 +204,122 @@
             align-items: center;
             gap: 10px;
             cursor: pointer;
+            transition: 0.2s;
         }
 
-        .task-icons-list {
+        .start-button:hover {
+            transform: scale(1.02);
+        }
+
+        .taskbar-apps {
             display: flex;
-            gap: 10px;
-            background: rgba(0,0,0,0.35);
-            padding: 6px 18px;
+            gap: 8px;
+            background: rgba(0,0,0,0.3);
+            padding: 6px 16px;
             border-radius: 48px;
-        }
-
-        .task-icon-item {
-            padding: 6px 14px;
-            border-radius: 32px;
-            background: rgba(255,255,255,0.1);
-            cursor: pointer;
-            font-size: 13px;
         }
 
         .clock-widget {
             color: white;
-            background: rgba(0,0,0,0.45);
-            padding: 7px 18px;
+            background: rgba(0,0,0,0.4);
+            padding: 6px 18px;
             border-radius: 36px;
             font-weight: 500;
+            letter-spacing: 0.5px;
         }
 
-        /* Окна */
+        /* МЕНЮ ПУСК (САЙДБАР) — плавное открытие/закрытие */
+        .start-menu-panel {
+            position: fixed;
+            bottom: 80px;
+            left: 20px;
+            width: 320px;
+            background: rgba(22, 25, 40, 0.96);
+            backdrop-filter: blur(40px);
+            border-radius: 32px;
+            padding: 20px;
+            z-index: 1500;
+            border: 1px solid rgba(255,255,255,0.18);
+            opacity: 0;
+            transform: translateY(20px) scale(0.96);
+            visibility: hidden;
+            transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .start-menu-panel.open {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            visibility: visible;
+        }
+
+        .start-menu-panel h4 {
+            color: white;
+            margin-bottom: 16px;
+            font-weight: 500;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding-bottom: 8px;
+        }
+
+        .start-menu-panel .menu-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .menu-grid button {
+            background: rgba(255,255,255,0.08);
+            text-align: left;
+            padding: 12px 16px;
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .menu-grid button i {
+            margin-right: 12px;
+            width: 24px;
+        }
+
+        /* Окна приложений */
         .app-window {
             position: fixed;
             top: 12%;
             left: 18%;
             width: 64%;
             height: 72%;
-            background: rgba(26, 28, 42, 0.98);
-            backdrop-filter: blur(44px);
-            border-radius: 36px;
-            border: 1px solid rgba(255,255,255,0.22);
+            background: rgba(26, 28, 44, 0.98);
+            backdrop-filter: blur(48px);
+            border-radius: 40px;
+            border: 1px solid rgba(255,255,255,0.2);
             display: flex;
             flex-direction: column;
             z-index: 2000;
-            box-shadow: 0 30px 55px rgba(0,0,0,0.6);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+            animation: windowAppear 0.2s ease;
         }
 
-        .win-title-bar {
-            padding: 18px 22px;
+        @keyframes windowAppear {
+            from { opacity: 0; transform: scale(0.97); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .window-header {
+            padding: 18px 24px;
             background: rgba(0,0,0,0.3);
-            border-radius: 36px 36px 0 0;
+            border-radius: 40px 40px 0 0;
             display: flex;
             justify-content: space-between;
             cursor: grab;
         }
 
-        .win-body {
+        .window-content {
             flex: 1;
-            padding: 22px;
+            padding: 24px;
             overflow: auto;
             color: white;
         }
 
-        iframe.browser-iframe {
+        iframe.browser-frame {
             width: 100%;
             height: 100%;
             border: none;
@@ -265,28 +327,29 @@
             background: white;
         }
 
-        .close-window-btn {
+        .close-window {
             background: none;
             border: none;
             color: white;
             font-size: 26px;
             cursor: pointer;
+            transition: 0.2s;
         }
 
-        @media (max-width: 780px) {
-            .app-window { width: 94%; left: 3%; height: 80%; top: 8%; }
+        @media (max-width: 760px) {
+            .app-window { width: 94%; left: 3%; height: 80%; top: 10%; }
+            .start-menu-panel { width: 280px; left: 16px; bottom: 70px; }
         }
     </style>
 </head>
 <body>
 
 <!-- УСТАНОВЩИК -->
-<div id="setupOverlay" class="setup-screen">
-    <div class="setup-card">
-        <!-- ШАГ 1: Страна -->
-        <div id="stepCountry" class="step-page active">
-            <h2><i class="fas fa-map-marker-alt"></i> Выберите страну</h2>
-            <select id="countryList">
+<div id="installerScreen" class="installer-overlay">
+    <div class="installer-card">
+        <div id="stepCountryDiv" class="step-container active">
+            <h2><i class="fas fa-globe-asia"></i> Выбор страны</h2>
+            <select id="countrySelector">
                 <option value="russia">🇷🇺 Россия (RUB)</option>
                 <option value="usa">🇺🇸 США (USD)</option>
                 <option value="germany">🇩🇪 Германия (EUR)</option>
@@ -311,60 +374,60 @@
                 <option value="brazil">🇧🇷 Бразилия (BRL)</option>
                 <option value="paraguay">🇵🇾 Парагвай (PYG)</option>
             </select>
-            <div id="countryError" class="error-message">❌ Обнаружены неправильные настройки (Северная Корея)</div>
-            <button id="nextToProfile">Далее →</button>
+            <div id="countryErrorMsg" class="error-msg">❌ Северная Корея — неправильные настройки</div>
+            <button id="nextStepBtn">Далее →</button>
         </div>
 
-        <!-- ШАГ 2: Профиль -->
-        <div id="stepProfile" class="step-page">
-            <h2><i class="fas fa-user-astronaut"></i> Ваш профиль</h2>
-            <input type="text" id="userFullName" placeholder="Имя" value="Никита">
-            <div class="avatar-group" id="avatarList">
-                <img class="avatar-item" data-img="https://randomuser.me/api/portraits/men/11.jpg" src="https://randomuser.me/api/portraits/men/11.jpg">
-                <img class="avatar-item" data-img="https://randomuser.me/api/portraits/women/22.jpg" src="https://randomuser.me/api/portraits/women/22.jpg">
-                <img class="avatar-item" data-img="https://randomuser.me/api/portraits/men/44.jpg" src="https://randomuser.me/api/portraits/men/44.jpg">
-                <img class="avatar-item" data-img="https://randomuser.me/api/portraits/women/65.jpg" src="https://randomuser.me/api/portraits/women/65.jpg">
+        <div id="stepProfileDiv" class="step-container">
+            <h2><i class="fas fa-user-astronaut"></i> Профиль</h2>
+            <input type="text" id="userNameInput" placeholder="Ваше имя" value="Михаил">
+            <div class="avatar-picker" id="avatarPicker">
+                <img class="avatar-option" data-avatar="https://randomuser.me/api/portraits/men/21.jpg" src="https://randomuser.me/api/portraits/men/21.jpg">
+                <img class="avatar-option" data-avatar="https://randomuser.me/api/portraits/women/33.jpg" src="https://randomuser.me/api/portraits/women/33.jpg">
+                <img class="avatar-option" data-avatar="https://randomuser.me/api/portraits/men/54.jpg" src="https://randomuser.me/api/portraits/men/54.jpg">
+                <img class="avatar-option" data-avatar="https://randomuser.me/api/portraits/women/79.jpg" src="https://randomuser.me/api/portraits/women/79.jpg">
             </div>
-            <button id="nextToWall">Далее →</button>
+            <button id="nextWallStepBtn">Далее →</button>
         </div>
 
-        <!-- ШАГ 3: Обои -->
-        <div id="stepWallpaper" class="step-page">
-            <h2><i class="fas fa-palette"></i> Оформление</h2>
-            <select id="wallpaperChoice">
-                <option value="url('https://images.pexels.com/photos/998641/pexels-photo-998641.jpeg')">🌌 Туманность Андромеда</option>
-                <option value="url('https://images.pexels.com/photos/2387793/pexels-photo-2387793.jpeg')">🏔️ Пик света</option>
-                <option value="url('https://images.pexels.com/photos/1252890/pexels-photo-1252890.jpeg')">🌊 Тихий океан</option>
+        <div id="stepWallDiv" class="step-container">
+            <h2><i class="fas fa-palette"></i> Обои рабочего стола</h2>
+            <select id="wallpaperSelect">
+                <option value="url('https://images.pexels.com/photos/998641/pexels-photo-998641.jpeg')">🌌 Космическая бездна</option>
+                <option value="url('https://images.pexels.com/photos/2387793/pexels-photo-2387793.jpeg')">🏔️ Лунные вершины</option>
+                <option value="url('https://images.pexels.com/photos/1252890/pexels-photo-1252890.jpeg')">🌊 Атлантический штиль</option>
             </select>
-            <button id="completeSetup">✨ Завершить установку ✨</button>
+            <button id="finishSetupBtn">✨ Запустить Nespos ✨</button>
         </div>
     </div>
 </div>
 
 <!-- ОС -->
-<div id="osMain" class="os-container">
-    <div class="desktop-grid" id="desktopIcons"></div>
-    <div class="task-bar">
-        <div class="start-menu" id="startButton"><i class="fas fa-th-large"></i> Пуск</div>
-        <div class="task-icons-list" id="taskbarPanel"></div>
+<div id="osRoot" class="os-root">
+    <div class="desktop-area" id="desktopIconsGrid"></div>
+    <div class="taskbar-panel">
+        <div class="start-button" id="startMenuTrigger">
+            <i class="fas fa-th-large"></i> Пуск
+        </div>
+        <div class="taskbar-apps" id="taskbarIconsContainer"></div>
         <div style="flex:1"></div>
-        <div class="clock-widget" id="currentTime"></div>
+        <div class="clock-widget" id="liveClock">--:--</div>
     </div>
 </div>
 
 <script>
-    // Данные
-    let userSettings = {
-        name: "Никита",
-        avatar: "https://randomuser.me/api/portraits/men/11.jpg",
+    // Данные системы
+    let osConfig = {
+        name: "Михаил",
+        avatar: "https://randomuser.me/api/portraits/men/21.jpg",
         country: "russia",
         currency: "RUB",
         wallpaper: "url('https://images.pexels.com/photos/998641/pexels-photo-998641.jpeg')"
     };
 
-    let selectedAvatarPic = userSettings.avatar;
+    let chosenAvatar = osConfig.avatar;
 
-    // Валюты по странам
+    // Карта валют
     const currencyMap = {
         russia: "RUB", usa: "USD", germany: "EUR", japan: "JPY", china: "CNY",
         taiwan: "CNY", ukraine: "UAH", belarus: "BYN", canada: "CAD", uk: "GBP",
@@ -373,87 +436,135 @@
         northkorea: "ERROR", sudan: "SDG", southsudan: "SSP", brazil: "BRL", paraguay: "PYG"
     };
 
-    // Установка: выбор аватарки
-    function bindAvatars() {
-        document.querySelectorAll('.avatar-item').forEach(img => {
-            img.addEventListener('click', function() {
-                document.querySelectorAll('.avatar-item').forEach(a => a.classList.remove('selected'));
+    // ---- УСТАНОВКА: выбор аватара и шаги ----
+    function bindAvatarSelection() {
+        document.querySelectorAll('.avatar-option').forEach(av => {
+            av.addEventListener('click', function() {
+                document.querySelectorAll('.avatar-option').forEach(a => a.classList.remove('selected'));
                 this.classList.add('selected');
-                selectedAvatarPic = this.getAttribute('data-img');
+                chosenAvatar = this.getAttribute('data-avatar');
             });
         });
-        if(document.querySelector('.avatar-item')) document.querySelector('.avatar-item').classList.add('selected');
+        if(document.querySelector('.avatar-option')) document.querySelector('.avatar-option').classList.add('selected');
     }
 
-    // Переключение шагов
-    document.getElementById('nextToProfile')?.addEventListener('click', () => {
-        let countryVal = document.getElementById('countryList').value;
+    document.getElementById('nextStepBtn')?.addEventListener('click', () => {
+        let countryVal = document.getElementById('countrySelector').value;
         if(countryVal === 'northkorea') {
-            document.getElementById('countryError').style.display = 'block';
+            document.getElementById('countryErrorMsg').style.display = 'block';
             return;
         }
-        document.getElementById('countryError').style.display = 'none';
-        userSettings.country = countryVal;
-        userSettings.currency = currencyMap[countryVal] || "USD";
-        document.getElementById('stepCountry').classList.remove('active');
-        document.getElementById('stepProfile').classList.add('active');
+        document.getElementById('countryErrorMsg').style.display = 'none';
+        osConfig.country = countryVal;
+        osConfig.currency = currencyMap[countryVal];
+        document.getElementById('stepCountryDiv').classList.remove('active');
+        document.getElementById('stepProfileDiv').classList.add('active');
+        bindAvatarSelection();
     });
 
-    document.getElementById('nextToWall')?.addEventListener('click', () => {
-        userSettings.name = document.getElementById('userFullName').value || "Пользователь";
-        userSettings.avatar = selectedAvatarPic;
-        document.getElementById('stepProfile').classList.remove('active');
-        document.getElementById('stepWallpaper').classList.add('active');
+    document.getElementById('nextWallStepBtn')?.addEventListener('click', () => {
+        osConfig.name = document.getElementById('userNameInput').value || "Пользователь";
+        osConfig.avatar = chosenAvatar;
+        document.getElementById('stepProfileDiv').classList.remove('active');
+        document.getElementById('stepWallDiv').classList.add('active');
     });
 
-    document.getElementById('completeSetup')?.addEventListener('click', () => {
-        userSettings.wallpaper = document.getElementById('wallpaperChoice').value;
-        document.getElementById('setupOverlay').style.display = 'none';
-        const osDiv = document.getElementById('osMain');
+    document.getElementById('finishSetupBtn')?.addEventListener('click', () => {
+        osConfig.wallpaper = document.getElementById('wallpaperSelect').value;
+        document.getElementById('installerScreen').style.display = 'none';
+        const osDiv = document.getElementById('osRoot');
         osDiv.style.display = 'flex';
-        osDiv.style.backgroundImage = userSettings.wallpaper;
-        document.body.style.backgroundImage = userSettings.wallpaper;
-        renderDesktop();
-        startClock();
+        osDiv.style.backgroundImage = osConfig.wallpaper;
+        document.body.style.backgroundImage = osConfig.wallpaper;
+        renderDesktopIcons();
+        startSystemClock();
     });
 
-    function renderDesktop() {
-        const desktop = document.getElementById('desktopIcons');
+    function renderDesktopIcons() {
+        const desktop = document.getElementById('desktopIconsGrid');
         desktop.innerHTML = `
-            <div class="app-icon" data-app="browser"><i class="fas fa-globe"></i><span>Браузер</span></div>
-            <div class="app-icon" data-app="weather"><i class="fas fa-cloud-sun"></i><span>Погода</span></div>
-            <div class="app-icon" data-app="currency"><i class="fas fa-coins"></i><span>Валюта (${userSettings.currency})</span></div>
-            <div class="app-icon" data-app="settings"><i class="fas fa-sliders-h"></i><span>Настройки</span></div>
-            <div class="app-icon" data-app="games"><i class="fas fa-gamepad"></i><span>Игры</span></div>
-            <div class="app-icon" data-app="profile"><i class="fas fa-id-card"></i><span>Профиль</span></div>
+            <div class="app-shortcut" data-app="browser"><i class="fas fa-globe"></i><span>Браузер</span></div>
+            <div class="app-shortcut" data-app="weather"><i class="fas fa-cloud-sun"></i><span>Погода</span></div>
+            <div class="app-shortcut" data-app="currency"><i class="fas fa-coins"></i><span>Валюта (${osConfig.currency})</span></div>
+            <div class="app-shortcut" data-app="settings"><i class="fas fa-sliders-h"></i><span>Настройки</span></div>
+            <div class="app-shortcut" data-app="games"><i class="fas fa-gamepad"></i><span>Игры</span></div>
+            <div class="app-shortcut" data-app="profile"><i class="fas fa-id-card"></i><span>Профиль</span></div>
         `;
     }
 
-    function startClock() {
+    function startSystemClock() {
         setInterval(() => {
             const now = new Date();
-            document.getElementById('currentTime').innerHTML = now.toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' });
+            document.getElementById('liveClock').innerHTML = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
         }, 1000);
     }
 
-    // === ПРИЛОЖЕНИЯ ===
-    function createWindow(title, contentHtml) {
+    // ========== МЕНЮ ПУСК (плавное открытие/закрытие) ==========
+    let startMenuElement = null;
+
+    function toggleStartMenu() {
+        if(startMenuElement) {
+            startMenuElement.classList.remove('open');
+            setTimeout(() => { if(startMenuElement) startMenuElement.remove(); startMenuElement = null; }, 250);
+            return;
+        }
+        const menuDiv = document.createElement('div');
+        menuDiv.className = 'start-menu-panel';
+        menuDiv.innerHTML = `
+            <h4><i class="fas fa-user-circle"></i> ${osConfig.name}</h4>
+            <div class="menu-grid">
+                <button data-app="browser"><i class="fas fa-globe"></i> Браузер</button>
+                <button data-app="weather"><i class="fas fa-cloud-sun"></i> Погода</button>
+                <button data-app="currency"><i class="fas fa-coins"></i> Курс валют</button>
+                <button data-app="games"><i class="fas fa-gamepad"></i> Игры</button>
+                <button data-app="settings"><i class="fas fa-sliders-h"></i> Настройки</button>
+                <button data-app="profile"><i class="fas fa-id-card"></i> Профиль</button>
+            </div>
+        `;
+        document.body.appendChild(menuDiv);
+        setTimeout(() => menuDiv.classList.add('open'), 10);
+        startMenuElement = menuDiv;
+
+        menuDiv.addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if(btn && btn.getAttribute('data-app')) {
+                openApp(btn.getAttribute('data-app'));
+                toggleStartMenu();
+            }
+        });
+        // закрытие при клике вне
+        const closeHandler = (e) => {
+            if(!menuDiv.contains(e.target) && !document.getElementById('startMenuTrigger').contains(e.target)) {
+                toggleStartMenu();
+                document.removeEventListener('click', closeHandler);
+            }
+        };
+        setTimeout(() => document.addEventListener('click', closeHandler), 50);
+    }
+
+    document.getElementById('startMenuTrigger')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleStartMenu();
+    });
+
+    // ========== ОКНА ПРИЛОЖЕНИЙ ==========
+    function createAppWindow(title, contentHtml) {
         const winId = Date.now();
         const winDiv = document.createElement('div');
         winDiv.className = 'app-window';
-        winDiv.id = `w_${winId}`;
+        winDiv.id = `win_${winId}`;
         winDiv.innerHTML = `
-            <div class="win-title-bar">
-                <span><i class="fas fa-window-maximize"></i> ${title}</span>
-                <button class="close-window-btn" data-id="${winId}">✕</button>
+            <div class="window-header">
+                <span>${title}</span>
+                <button class="close-window" data-id="${winId}">✕</button>
             </div>
-            <div class="win-body">${contentHtml}</div>
+            <div class="window-content">${contentHtml}</div>
         `;
         document.body.appendChild(winDiv);
-        winDiv.querySelector('.close-window-btn').onclick = () => winDiv.remove();
+        winDiv.querySelector('.close-window').onclick = () => winDiv.remove();
 
         let drag = false, offX, offY;
-        const header = winDiv.querySelector('.win-title-bar');
+        const header = winDiv.querySelector('.window-header');
         header.addEventListener('mousedown', (e) => {
             drag = true;
             offX = e.clientX - winDiv.offsetLeft;
@@ -468,104 +579,92 @@
 
     function openApp(appId) {
         if(appId === 'browser') {
-            createWindow('🌐 Браузер Nespos', `<div style="height:100%; display:flex; flex-direction:column;"><input id="browserUrlInput" placeholder="Введите URL (google.com)" style="padding:10px; border-radius:40px; margin-bottom:10px;"><button id="goToUrl">Перейти</button><iframe id="browserFrame" class="browser-iframe" src="https://yandex.ru"></iframe></div>`);
+            createAppWindow('🌐 Nespos Браузер', `<div style="height:100%; display:flex; flex-direction:column;"><input id="urlInputField" placeholder="Введите сайт (google.com)" style="padding:12px; border-radius:48px; margin-bottom:12px;"><button id="navigateBtn">Перейти</button><iframe id="browserFrame" class="browser-frame" src="https://yandex.ru"></iframe></div>`);
             setTimeout(() => {
-                const btn = document.getElementById('goToUrl');
-                const inp = document.getElementById('browserUrlInput');
+                const navBtn = document.getElementById('navigateBtn');
+                const urlField = document.getElementById('urlInputField');
                 const frame = document.getElementById('browserFrame');
-                if(btn && inp && frame) btn.onclick = () => { let url = inp.value; if(!url.startsWith('http')) url = 'https://' + url; frame.src = url; };
+                if(navBtn && urlField && frame) navBtn.onclick = () => { let url = urlField.value; if(!url.startsWith('http')) url = 'https://' + url; frame.src = url; };
             }, 30);
         }
         else if(appId === 'weather') {
-            createWindow('⛅ Реальная погода', `<div><input id="cityWeather" placeholder="Город" value="Москва"><button id="getWeatherBtn">Узнать</button><div id="weatherResult" style="margin-top:20px; background:rgba(255,255,255,0.1); border-radius:28px; padding:20px;">🌡️ Нажмите кнопку</div></div>`);
+            createAppWindow('⛅ Реальная погода', `<div><input id="weatherCityInput" placeholder="Город" value="Москва"><button id="fetchWeatherBtn">Узнать</button><div id="weatherDisplay" style="margin-top:20px; background:rgba(255,255,255,0.1); border-radius:28px; padding:20px;">🌡️ Нажмите кнопку</div></div>`);
             setTimeout(async () => {
-                const btn = document.getElementById('getWeatherBtn');
-                const cityIn = document.getElementById('cityWeather');
-                const resDiv = document.getElementById('weatherResult');
-                async function fetchReal() {
-                    resDiv.innerText = "⏳ Загрузка...";
+                const btn = document.getElementById('fetchWeatherBtn');
+                const cityInp = document.getElementById('weatherCityInput');
+                const resDiv = document.getElementById('weatherDisplay');
+                async function getRealWeather() {
+                    if(resDiv) resDiv.innerText = "⏳ Загрузка...";
                     try {
-                        const geo = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${cityIn.value}&count=1&language=ru`);
+                        const geo = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${cityInp.value}&count=1&language=ru`);
                         const geoData = await geo.json();
                         if(!geoData.results) throw new Error();
                         const { latitude, longitude, name } = geoData.results[0];
                         const w = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
                         const weather = await w.json();
-                        resDiv.innerHTML = `🌍 ${name}: ${weather.current_weather.temperature}°C, ветер ${weather.current_weather.windspeed} км/ч`;
-                    } catch(e) { resDiv.innerHTML = "✅ Nespos дарит: +23°C, солнце"; }
+                        if(resDiv) resDiv.innerHTML = `🌍 ${name}: ${weather.current_weather.temperature}°C, ветер ${weather.current_weather.windspeed} км/ч`;
+                    } catch(e) { if(resDiv) resDiv.innerHTML = "☀️ Nespos: +24°C, солнечно"; }
                 }
-                if(btn) btn.onclick = fetchReal;
+                if(btn) btn.onclick = getRealWeather;
             }, 20);
         }
         else if(appId === 'currency') {
-            createWindow(`💰 Курс валют (${userSettings.currency})`, `<div><p>1 USD = ${userSettings.currency === 'RUB' ? '91.5' : userSettings.currency === 'EUR' ? '0.92' : '1.00'} ${userSettings.currency}</p><p>Курс обновляется автоматически</p><button id="refreshRate">Обновить курс</button><div id="rateMsg"></div></div>`);
+            createAppWindow(`💰 Курс валют (${osConfig.currency})`, `<div><p>1 USD = ${osConfig.currency === 'RUB' ? '92.5' : osConfig.currency === 'EUR' ? '0.93' : '1.00'} ${osConfig.currency}</p><button id="refreshCurrencyBtn">Обновить курс</button><div id="currencyMsg"></div></div>`);
             setTimeout(() => {
-                document.getElementById('refreshRate')?.addEventListener('click', () => {
-                    document.getElementById('rateMsg').innerHTML = `✅ Курс: 1 USD = ${Math.floor(Math.random() * 100 + 50)} ${userSettings.currency}`;
+                document.getElementById('refreshCurrencyBtn')?.addEventListener('click', () => {
+                    document.getElementById('currencyMsg').innerHTML = `✅ 1 USD = ${Math.floor(Math.random() * 80 + 60)} ${osConfig.currency}`;
                 });
             }, 10);
         }
         else if(appId === 'settings') {
-            createWindow('⚙️ Настройки', `<div><button id="uploadOwnWallpaper">🖼️ Загрузить свои обои</button><input type="file" id="wallFileInput" style="margin-top:12px;"><button id="nightModeToggle">🌙 Ночной режим</button></div>`);
+            createAppWindow('⚙️ Системные настройки', `<div><button id="uploadWallBtn">🖼️ Загрузить свои обои</button><input type="file" id="wallInputFile"><button id="nightModeSwitch">🌙 Ночной режим</button></div>`);
             setTimeout(() => {
-                const fileInp = document.getElementById('wallFileInput');
-                document.getElementById('uploadOwnWallpaper')?.addEventListener('click', () => fileInp.click());
-                fileInp?.addEventListener('change', (e) => {
+                const fileInput = document.getElementById('wallInputFile');
+                document.getElementById('uploadWallBtn')?.addEventListener('click', () => fileInput.click());
+                fileInput?.addEventListener('change', (e) => {
                     if(e.target.files[0]) {
                         const url = URL.createObjectURL(e.target.files[0]);
-                        document.getElementById('osMain').style.backgroundImage = `url(${url})`;
+                        document.getElementById('osRoot').style.backgroundImage = `url(${url})`;
                     }
                 });
-                document.getElementById('nightModeToggle')?.addEventListener('click', () => document.body.classList.toggle('night-style'));
+                document.getElementById('nightModeSwitch')?.addEventListener('click', () => document.body.classList.toggle('night-theme'));
             }, 20);
         }
         else if(appId === 'games') {
-            createWindow('🎮 Игровой центр', `<div><button id="guessNumberGame">🔢 Угадай число</button><button id="rollDiceGame">🎲 Бросок кубика</button><div id="gameOutput"></div></div>`);
+            createAppWindow('🎮 Игровой центр', `<div><button id="guessNumber">🔢 Угадай число</button><button id="rollDice">🎲 Бросок кубика</button><div id="gameResultArea"></div></div>`);
             setTimeout(() => {
-                document.getElementById('guessNumberGame')?.addEventListener('click', () => {
-                    let secret = Math.floor(Math.random()*100)+1;
+                document.getElementById('guessNumber')?.addEventListener('click', () => {
+                    let secret = Math.floor(Math.random() * 100) + 1;
                     let guess = prompt("Число 1-100");
                     while(guess != secret && guess != null) guess = prompt(guess > secret ? "Меньше" : "Больше");
                     alert("Победа!");
                 });
-                document.getElementById('rollDiceGame')?.addEventListener('click', () => {
-                    document.getElementById('gameOutput').innerHTML = `🎲 Выпало: ${Math.floor(Math.random()*6)+1}`;
+                document.getElementById('rollDice')?.addEventListener('click', () => {
+                    document.getElementById('gameResultArea').innerHTML = `🎲 Выпало: ${Math.floor(Math.random()*6)+1}`;
                 });
             }, 10);
         }
         else if(appId === 'profile') {
-            createWindow('👤 Мой профиль', `<div style="display:flex; gap:20px;"><img src="${userSettings.avatar}" style="width:80px; border-radius:50%;"><div><h3>${userSettings.name}</h3><p>Страна: ${userSettings.country}</p><p>Валюта: ${userSettings.currency}</p><button id="changeUserNameBtn">Изменить имя</button></div></div>`);
+            createAppWindow('👤 Профиль пользователя', `<div style="display:flex; gap:20px;"><img src="${osConfig.avatar}" style="width:84px; border-radius:50%;"><div><h3>${osConfig.name}</h3><p>Страна: ${osConfig.country}</p><p>Валюта: ${osConfig.currency}</p><button id="editUserNameBtn">Изменить имя</button></div></div>`);
             setTimeout(() => {
-                document.getElementById('changeUserNameBtn')?.addEventListener('click', () => {
-                    let newN = prompt("Новое имя", userSettings.name);
-                    if(newN) userSettings.name = newN;
+                document.getElementById('editUserNameBtn')?.addEventListener('click', () => {
+                    const newName = prompt("Новое имя", osConfig.name);
+                    if(newName) osConfig.name = newName;
                 });
             }, 10);
         }
     }
 
-    // Запуск иконок
-    document.getElementById('desktopIcons')?.addEventListener('click', (e) => {
-        const icon = e.target.closest('.app-icon');
+    // Запуск приложений с рабочего стола
+    document.getElementById('desktopIconsGrid')?.addEventListener('click', (e) => {
+        const icon = e.target.closest('.app-shortcut');
         if(icon && icon.getAttribute('data-app')) openApp(icon.getAttribute('data-app'));
     });
 
-    document.getElementById('startButton')?.addEventListener('click', () => {
-        let menu = document.createElement('div');
-        menu.style.cssText = 'position:fixed; bottom:75px; left:20px; background:rgba(0,0,0,0.85); backdrop-filter:blur(32px); border-radius:32px; padding:22px; z-index:2500; display:flex; gap:14px; flex-wrap:wrap;';
-        menu.innerHTML = `<button data-app="browser">🌐 Браузер</button><button data-app="weather">⛅ Погода</button><button data-app="currency">💰 Курс валют</button><button data-app="games">🎮 Игры</button><button data-app="profile">👤 Профиль</button>`;
-        document.body.appendChild(menu);
-        menu.addEventListener('click', (ev) => {
-            const b = ev.target.closest('button');
-            if(b && b.getAttribute('data-app')) { openApp(b.getAttribute('data-app')); menu.remove(); }
-        });
-        setTimeout(() => menu.remove(), 5000);
-    });
-
-    const nightCss = document.createElement('style');
-    nightCss.textContent = `body.night-style .os-container, body.night-style { background: #1a1412 !important; } .night-style .app-window { background: rgba(20,18,20,0.97); }`;
-    document.head.appendChild(nightCss);
-    bindAvatars();
+    // Ночная тема
+    const nightThemeStyle = document.createElement('style');
+    nightThemeStyle.textContent = `body.night-theme .os-root, body.night-theme { background: #1e1714 !important; } .night-theme .app-window { background: rgba(28,22,20,0.98); }`;
+    document.head.appendChild(nightThemeStyle);
 </script>
 </body>
 </html>
